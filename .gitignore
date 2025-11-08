@@ -39,7 +39,3 @@ backend/*.iml
 backend/.mvn/
 backend/mvnw
 backend/mvnw.cmd
-
-# Vercel & misc..
-DEPLOYMENT_GUIDE.md
-QUICK_START.md
