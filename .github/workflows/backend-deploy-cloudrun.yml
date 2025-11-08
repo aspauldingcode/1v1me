@@ -78,9 +78,8 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
         run: |
-          # Link project non-interactively, run from frontend, and update envs
+          # Run from frontend and update envs (project already linked via .vercel)
           cd ../frontend
-          vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
           echo "$BACKEND_URL" | vercel env update BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
           echo "$BACKEND_URL" | vercel env update NEXT_PUBLIC_BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
