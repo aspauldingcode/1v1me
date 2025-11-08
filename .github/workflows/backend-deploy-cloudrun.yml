@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: .
 
     steps:
       - name: Checkout
@@ -33,6 +33,7 @@ jobs:
           cache: "maven"
 
       - name: Build jar with Maven
+        working-directory: backend
         run: mvn -B -ntp -DskipTests package
 
       - name: Authenticate to Google Cloud
@@ -50,6 +51,7 @@ jobs:
           gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 
       - name: Build and push image with Docker (Artifact Registry)
+        working-directory: backend
         run: |
           gcloud auth configure-docker "$AR_LOCATION-docker.pkg.dev" --quiet
           IMAGE_URI="$AR_LOCATION-docker.pkg.dev/$GCP_PROJECT_ID/$AR_REPO/$IMAGE_NAME:$IMAGE_TAG"
@@ -58,6 +60,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         id: deploy
+        working-directory: backend
         run: |
           gcloud run deploy "$GCP_SERVICE" \
             --project "$GCP_PROJECT_ID" \
@@ -73,14 +76,13 @@ jobs:
         run: npm i -g vercel@latest
 
       - name: Update Vercel BACKEND_URL and NEXT_PUBLIC_BACKEND_URL (Production)
+        working-directory: frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
         run: |
-          # Run from frontend and update envs (project already linked via .vercel)
-          cd ../frontend
           # Diagnostics to ensure CLI, auth, and linkage are correct
           vercel --version || true
           vercel whoami --token "$VERCEL_TOKEN" || true
@@ -101,12 +103,12 @@ jobs:
           echo "Env (production) after changes:" && vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
 
       - name: Trigger Vercel Production Deploy with CLI
+        working-directory: frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          cd ../frontend
           # Trigger a production deploy (non-interactive)
           vercel --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
 
