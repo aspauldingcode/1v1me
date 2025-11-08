@@ -75,6 +75,7 @@ jobs:
       - name: Update Vercel BACKEND_URL and NEXT_PUBLIC_BACKEND_URL (Production)
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
         run: |
@@ -88,6 +89,7 @@ jobs:
       - name: Trigger Vercel Production Deploy with CLI
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           cd ../frontend
