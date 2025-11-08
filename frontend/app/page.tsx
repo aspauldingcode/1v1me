@@ -10,7 +10,7 @@ export default function Home() {
         </p>
         <div className="mb-8 rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white/60 dark:bg-gray-800/60">
           <p className="text-center text-green-700 dark:text-green-300 font-medium">
-            Deployed successfully on Vercel ✅
+            1V1 me noob
           </p>
           <p className="text-center text-sm text-gray-600 dark:text-gray-300 mt-2">
             Check the example API route:{' '}
