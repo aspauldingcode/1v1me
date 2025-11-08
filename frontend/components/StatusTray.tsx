@@ -1,5 +1,6 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import validator from 'validator'
 
 type Endpoint = {
@@ -43,7 +44,7 @@ export default function StatusTray() {
     return s?.ok ?? null
   }, [statusMap])
 
-  async function checkEndpoint(ep: Endpoint) {
+  const checkEndpoint = useCallback(async (ep: Endpoint) => {
     try {
       const res = await fetch(ep.path, { cache: 'no-store' })
       const ts = new Date().toISOString()
@@ -52,11 +53,11 @@ export default function StatusTray() {
       const ts = new Date().toISOString()
       setStatusMap((m) => ({ ...m, [ep.path]: { ok: false, code: undefined, timestamp: ts } }))
     }
-  }
+  }, [])
 
-  async function refreshAll() {
+  const refreshAll = useCallback(async () => {
     for (const ep of endpoints) await checkEndpoint(ep)
-  }
+  }, [checkEndpoint])
 
   useEffect(() => {
     if (open) {
@@ -64,7 +65,7 @@ export default function StatusTray() {
       const id = setInterval(() => void refreshAll(), 30000)
       return () => clearInterval(id)
     }
-  }, [open])
+  }, [open, refreshAll])
 
   function sanitizeUsername(raw: string) {
     const trimmed = validator.trim(raw)
@@ -196,7 +197,7 @@ export default function StatusTray() {
         <div className="mt-4 border-t border-black/10 pt-4 dark:border-white/10">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Register Username</p>
-            <a href="/register" className="text-xs text-blue-600 hover:underline dark:text-blue-400">Open page</a>
+            <Link href="/register" className="text-xs text-blue-600 hover:underline dark:text-blue-400">Open page</Link>
           </div>
           <div className="mt-2 flex items-center gap-2">
             <input

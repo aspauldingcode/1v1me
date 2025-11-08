@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import validator from 'validator'
 
 function sanitizeUsername(raw: string) {
@@ -72,7 +73,7 @@ export default function RegisterPage() {
     <div className="mx-auto max-w-lg px-6 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Register Username</h1>
-        <a href="/" className="text-sm text-blue-600 hover:underline dark:text-blue-400">Home</a>
+        <Link href="/" className="text-sm text-blue-600 hover:underline dark:text-blue-400">Home</Link>
       </div>
       <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">This uses POST <code>/api/register/{'{username}'}</code> with sanitized input.</p>
 
