@@ -1,3 +1,5 @@
+import ConnectivityStatus from '../components/ConnectivityStatus'
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
@@ -18,6 +20,7 @@ export default function Home() {
               /api/health
             </a>
           </p>
+          <ConnectivityStatus />
         </div>
         <div className="flex justify-center gap-4">
           <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
