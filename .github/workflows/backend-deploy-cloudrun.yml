@@ -112,7 +112,14 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          # Trigger a production deploy (non-interactive)
-          vercel deploy . --prod --confirm --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
+          # Trigger a production deploy (non-interactive) with diagnostics
+          set -euxo pipefail
+          pwd
+          ls -la
+          echo "Linked .vercel contents:" && ls -la .vercel || true
+          echo "Linked project.json:" && cat .vercel/project.json || true
+          vercel --version
+          vercel whoami --token "$VERCEL_TOKEN" || true
+          vercel --prod . --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
 
 
