@@ -83,14 +83,15 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
         run: |
-          # Non-interactive updates of env vars using stdin
-          echo "$BACKEND_URL" | vercel env update BACKEND_URL production --token "$VERCEL_TOKEN"
-          echo "$BACKEND_URL" | vercel env update NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN"
+          # Run from frontend dir and target specific org/project
+          cd ../frontend
+          echo "$BACKEND_URL" | vercel env update BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+          echo "$BACKEND_URL" | vercel env update NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
 
       - name: Trigger Vercel Production Deploy with CLI
         if: env.VERCEL_TOKEN != ''
         run: |
           cd ../frontend
-          vercel --prod --yes --token "$VERCEL_TOKEN"
+          vercel --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
 
 
