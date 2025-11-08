@@ -8,7 +8,7 @@ on:
 env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: ${{ secrets.GCP_REGION }}
-  GCP_SERVICE: ${{ secrets.GCP_SERVICE }} # e.g. one-v-one-backend
+  GCP_SERVICE: ${{ secrets.GCP_SERVICE }}
   IMAGE_NAME: backend
   IMAGE_TAG: ${{ github.sha }}
   AR_LOCATION: ${{ secrets.GCP_REGION }}
@@ -106,7 +106,6 @@ jobs:
           echo "Env (production) after changes:" && vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
 
       - name: Trigger Vercel Production Deploy with CLI
-        working-directory: frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -116,9 +115,12 @@ jobs:
           set -euxo pipefail
           pwd
           ls -la
-          echo "Linked .vercel contents:" && ls -la .vercel || true
-          echo "Linked project.json:" && cat .vercel/project.json || true
+          # Create Vercel project configuration in the correct location
+          mkdir -p frontend/.vercel
+          echo "{"orgId":"$VERCEL_ORG_ID","projectId":"$VERCEL_PROJECT_ID"}" > frontend/.vercel/project.json
+          echo "Linked .vercel contents:" && ls -la frontend/.vercel || true
+          echo "Linked project.json:" && cat frontend/.vercel/project.json || true
           vercel --version
           vercel whoami --token "$VERCEL_TOKEN" || true
-          # Deploy from current directory explicitly, avoiding path resolution issues
-          vercel deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
+          # Deploy frontend directory explicitly from root, avoiding path resolution issues
+          vercel deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug frontend
