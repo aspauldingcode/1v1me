@@ -89,10 +89,14 @@ jobs:
           echo "VERCEL_ORG_ID present? $([[ -n \"$VERCEL_ORG_ID\" ]] && echo yes || echo no)"
           echo "VERCEL_PROJECT_ID present? $([[ -n \"$VERCEL_PROJECT_ID\" ]] && echo yes || echo no)"
           echo "Env (production) before changes:" && vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
-          # Remove (ignore if missing), then add envs with explicit team scope and debug
-          vercel env rm BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug || true
+          # Remove if present, then add envs with explicit team scope and debug
+          if vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" | grep -q "BACKEND_URL"; then
+            vercel env rm BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --debug
+          fi
           echo "$BACKEND_URL" | vercel env add BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
-          vercel env rm NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug || true
+          if vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" | grep -q "NEXT_PUBLIC_BACKEND_URL"; then
+            vercel env rm NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --debug
+          fi
           echo "$BACKEND_URL" | vercel env add NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
           echo "Env (production) after changes:" && vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
 
