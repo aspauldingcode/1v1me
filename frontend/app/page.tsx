@@ -14,7 +14,7 @@ export default function Home() {
           </p>
           <p className="text-center text-sm text-gray-600 dark:text-gray-300 mt-2">
             Check the example API route:{' '}
-            <a className="underline hover:no-underline text-blue-600 dark:text-blue-400" href="/api/health" target="_blank" rel="noreferrer">
+            <a className="underline hover:no-underline text-blue-600 dark:text-blue-400" href="/api/health" target="_blank" rel="noopener noreferrer">
               /api/health
             </a>
           </p>
