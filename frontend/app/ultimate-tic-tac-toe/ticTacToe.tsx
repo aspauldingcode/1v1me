@@ -14,24 +14,26 @@ interface SendMove {
 
 async function getMove(payload: GetMove): Promise<GetMove> {
     // This is a utility function (not a React component), so don't use hooks here.
-    let player: string = "";
-    let moves: number[] = [];
-
-    //fetch logic here
-    // Example:
-    // const res = await fetch(`${API_URL}get_move/tictactoe`);
-    // const data = await res.json();
-    // player = data.username;
-    // moves = data.info;
+    let player: string = payload.username ?? "";
+    let moves: number[] = payload.location ?? [];
 
     try {
-        const response = await fetch(`${API_URL}get_move/tictactoe/${payload.username}`) //TODO: Get the player/move data from api
+        const response = await fetch(`${API_URL}get_move/tictactoe/${encodeURIComponent(payload.username)}`, { cache: 'no-store' });
+        if (response.ok) {
+            const data = await response.json();
+            player = (data?.username as string) ?? player;
+            moves = (data?.location as number[]) ?? moves;
+        } else {
+            console.error('getMove failed:', response.status);
+        }
+    } catch (err) {
+        console.error('Error fetching move:', err);
     }
 
     return {
         username: player,
-        location: moves
-    }
+        location: moves,
+    };
 }
 
 // needs to send username of current player and the movement coordinates
