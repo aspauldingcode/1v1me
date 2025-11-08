@@ -92,6 +92,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           cd ../frontend
-          vercel --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
+          vercel --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
 
 
