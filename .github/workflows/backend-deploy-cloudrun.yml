@@ -105,20 +105,4 @@ jobs:
           echo "$BACKEND_URL" | vercel env add NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
           echo "Env (production) after changes:" && vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
 
-      - name: Trigger Vercel Production Deploy with CLI
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          # Trigger a production deploy (non-interactive) with diagnostics
-          set -euxo pipefail
-          pwd
-          ls -la
-          echo "Current directory: $(pwd)"
-          echo "Directory contents:"
-          ls -la
-          vercel --version
-          vercel whoami --token "$VERCEL_TOKEN" || true
-          # Deploy from current directory (frontend) using explicit path
-          vercel deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug .
+      # Removed explicit Vercel deploy; rely on GitHub integration auto-deploys
