@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 const API_URL: string = ""
+const PLAYER_NAME: string = localStorage.getItem("userName") ?? ""
 
 export default function TicTacToe() {
   const [board, setBoard] = useState<string[]>(Array(9).fill(""));
@@ -13,7 +14,7 @@ export default function TicTacToe() {
   useEffect(() => {
     const fetchGameState = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/game`); // your API endpoint
+        const res = await fetch(`${API_URL}/api/gameState/${PLAYER_NAME}`); // your API endpoint
         const data = await res.json();
         // Expecting something like { board: ["X", "", "O", ...], you: "Mekai", opponent: "Alex" }
         setBoard(data.board);
