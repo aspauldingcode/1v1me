@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 const API_URL: string = "insert_here" // TODO: REMEMBER TO CHANGE THIS
 
-interface GetMove {
+interface gameState {
     username: string;
     location: number[]; // info[0] is the row, info[1] is the column
 }
@@ -12,29 +12,7 @@ interface SendMove {
     location: number[];
 }
 
-async function getMove(payload: GetMove): Promise<GetMove> {
-    // This is a utility function (not a React component), so don't use hooks here.
-    let player: string = payload.username ?? "";
-    let moves: number[] = payload.location ?? [];
-
-    try {
-        const response = await fetch(`${API_URL}get_move/tictactoe/${encodeURIComponent(payload.username)}`, { cache: 'no-store' });
-        if (response.ok) {
-            const data = await response.json();
-            player = (data?.username as string) ?? player;
-            moves = (data?.location as number[]) ?? moves;
-        } else {
-            console.error('getMove failed:', response.status);
-        }
-    } catch (err) {
-        console.error('Error fetching move:', err);
-    }
-
-    return {
-        username: player,
-        location: moves,
-    };
-}
+async function getGameState: 
 
 // needs to send username of current player and the movement coordinates
 // this function will be called when the user clicks on a tile on the tic tac toe board.
@@ -80,4 +58,10 @@ export function Board(): JSX.Element {
             </div>
         </>
     )
+}
+
+export function Game(): void {
+    // while nobody has won
+    // make first players turn
+    // make second players turn
 }
