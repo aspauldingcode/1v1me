@@ -83,11 +83,9 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
         run: |
-          # Remove existing value if present, then add new value
-          vercel env rm BACKEND_URL production --yes --token "$VERCEL_TOKEN" || true
-          echo "$BACKEND_URL" | vercel env add BACKEND_URL production --yes --token "$VERCEL_TOKEN"
-          vercel env rm NEXT_PUBLIC_BACKEND_URL production --yes --token "$VERCEL_TOKEN" || true
-          echo "$BACKEND_URL" | vercel env add NEXT_PUBLIC_BACKEND_URL production --yes --token "$VERCEL_TOKEN"
+          # Non-interactive updates of env vars using stdin
+          echo "$BACKEND_URL" | vercel env update BACKEND_URL production --token "$VERCEL_TOKEN"
+          echo "$BACKEND_URL" | vercel env update NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN"
 
       - name: Trigger Vercel Production Deploy with CLI
         if: env.VERCEL_TOKEN != ''
