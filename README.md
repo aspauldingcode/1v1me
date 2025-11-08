@@ -166,7 +166,7 @@ vercel login
 # Navigate to project root
 cd /Users/alex/1v1me
 
-# Deploy to Vercel
+# Deploy to Vercel (this will connect your GitHub repo)
 vercel
 
 # Follow the prompts:
@@ -181,6 +181,10 @@ vercel
 vercel --prod
 ```
 
+**🔄 Automatic Deployments:** Once connected, Vercel automatically deploys on every `git push` to your GitHub repository!
+- Push to `master` → Production deployment
+- Create pull request → Preview deployment
+
 #### Alternative: Deploy via Vercel Dashboard
 1. Go to [vercel.com/new](https://vercel.com/new)
 2. Import your GitHub repository: `aspauldingcode/1v1me`
@@ -190,6 +194,8 @@ vercel --prod
    - **Build Command:** `npm run build` (auto-detected)
    - **Output Directory:** `.next` (auto-detected)
 4. Click "Deploy"
+
+**🔄 After initial setup:** Every `git push` automatically triggers a new deployment!
 
 ### Step 3: Deploy Backend
 
