@@ -49,12 +49,17 @@ Prereqs: Node.js 18+, Java 21, Maven
 
 - Minigames are being added; backend endpoints will evolve. Frontend can operate with placeholders when backend is not ready.
 
-## Contributing
+## Contributors / Thanks
 
-1. Create a branch: `git checkout -b feature/<name>`
-2. Make changes and run local build/tests
-3. Push and open a PR
+- Alex Spaulding
+- Mekai Johnson
+- Liam Earl
+- Joel Sivanish
 
 ## License
 
-Private repository.
+All rights reserved.
+
+This is proprietary software. No permission is granted to use, copy, modify,
+distribute, or sublicense any part of this repository without prior written
+authorization from the repository owners.

@@ -17,6 +17,13 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>1v1me-backend</name>
     <description>Backend API for 1v1me</description>
+    <licenses>
+        <license>
+            <name>Proprietary - All Rights Reserved</name>
+            <url>../LICENSE</url>
+            <distribution>manual</distribution>
+        </license>
+    </licenses>
     
     <properties>
         <java.version>21</java.version>
