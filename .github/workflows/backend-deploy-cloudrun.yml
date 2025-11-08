@@ -75,25 +75,23 @@ jobs:
       - name: Update Vercel BACKEND_URL and NEXT_PUBLIC_BACKEND_URL (Production)
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
         run: |
           # Link project non-interactively, run from frontend, and update envs
           cd ../frontend
-          vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+          vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
           echo "$BACKEND_URL" | vercel env update BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
           echo "$BACKEND_URL" | vercel env update NEXT_PUBLIC_BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
       - name: Trigger Vercel Production Deploy with CLI
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           cd ../frontend
           # Prebuild locally to avoid remote build issues, then deploy the prebuilt output
-          vercel build --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
-          vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+          vercel build --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
+          vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
 
