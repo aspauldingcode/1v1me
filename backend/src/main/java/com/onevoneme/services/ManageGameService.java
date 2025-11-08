@@ -2,13 +2,14 @@ package com.onevoneme.services;
 
 import com.onevoneme.model.GameUser;
 import com.onevoneme.model.game.ActiveGame;
-import com.onevoneme.model.game.Game;
 import com.onevoneme.model.game.UltimateTTT;
 import lombok.Getter;
+import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 @Service
 public class ManageGameService {
@@ -19,7 +20,7 @@ public class ManageGameService {
 
     private final ArrayList<ActiveGame> activeGames = new ArrayList<>();
 
-    public Game queueUp(String username) {
+    public ActiveGame queueUp(String username) {
         // search active games and make sure that the user isn't already in one
         for(ActiveGame g : activeGames) {
             if(g.getUsers()[0].getName().equals(username) ||
@@ -35,15 +36,11 @@ public class ManageGameService {
             return null;
         }
 
-        // create a game and
-        String otherUser = usersInQueue.getFirst();
-        usersInQueue.removeFirst();
-
-        Game actualGame = new UltimateTTT(username, otherUser);
-
-        ActiveGame game = new ActiveGame(actualGame, users.get(username), users.get(otherUser));
+        String otherUser = usersInQueue.get(0);
+        usersInQueue.remove(0);
+        ActiveGame game = new ActiveGame(new UltimateTTT(), users.get(username), users.get(otherUser));
         activeGames.add(game);
-        return actualGame;
+        return game;
     }
 
     public boolean isUserCreated(String username) {
@@ -52,14 +49,5 @@ public class ManageGameService {
 
     public void registerUser(String username) {
         users.put(username, new GameUser(username));
-    }
-
-    public void removeGameWithUser(String username) {
-        for(ActiveGame g : activeGames) {
-            if(g.getUsers()[0].getName().equals(username) || g.getUsers()[1].getName().equals(username)) {
-                activeGames.remove(g);
-                return;
-            }
-        }
     }
 }

@@ -2,6 +2,13 @@
   "name": "1v1me-frontend",
   "version": "0.1.0",
   "private": true,
+  "license": "UNLICENSED",
+  "contributors": [
+    { "name": "Alex Spaulding" },
+    { "name": "Mekai Johnson" },
+    { "name": "Liam Earl" },
+    { "name": "Joel Sivanish" }
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

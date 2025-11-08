@@ -6,7 +6,10 @@ const nextConfig = {
       {
         source: '/api/:path*',
         destination: (() => {
-          const base = process.env.BACKEND_URL || 'http://localhost:8080/api';
+          const base =
+            process.env.BACKEND_URL ||
+            process.env.NEXT_PUBLIC_BACKEND_URL ||
+            'http://localhost:8080/api';
           return base.replace(/\/$/, '') + '/:path*';
         })(),
       },
