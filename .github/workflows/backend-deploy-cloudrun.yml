@@ -81,6 +81,8 @@ jobs:
         run: |
           # Run from frontend and update envs (project already linked via .vercel)
           cd ../frontend
+          echo "VERCEL_ORG_ID present? $([[ -n \"$VERCEL_ORG_ID\" ]] && echo yes || echo no)"
+          echo "VERCEL_PROJECT_ID present? $([[ -n \"$VERCEL_PROJECT_ID\" ]] && echo yes || echo no)"
           vercel env rm BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
           echo "$BACKEND_URL" | vercel env add BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
           vercel env rm NEXT_PUBLIC_BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
