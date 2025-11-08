@@ -1,6 +1,4 @@
 {
-  "orgId": "team_ylJakuItHlY80p1OAF72Z2rT",
-  "projectId": "prj_nmAQTdsl8flQ7oFE9ZXpxngzCJxh",
   "builds": [
     { "src": "frontend/package.json", "use": "@vercel/next" }
   ],
