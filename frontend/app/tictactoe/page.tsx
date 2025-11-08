@@ -1,7 +1,7 @@
 "use client"
-import { Board } from './ticTacToe'
+import { Board } from './tictactoe'
 
-export default function UltimateTicTacToePage() {
+export default function TicTacToePage() {
   return (
     <main className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-white">
       <section className="mx-auto max-w-5xl px-6 py-10">

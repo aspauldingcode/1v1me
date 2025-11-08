@@ -4,7 +4,7 @@ export default function Home() {
   const games = [
     {
       title: 'Tic-Tac-Toe',
-      href: '/ultimate-tic-tac-toe',
+      href: '/tictactoe',
       emoji: '🟦',
       description: 'Classic 3×3. Take turns and claim victory.',
       status: 'Play',
