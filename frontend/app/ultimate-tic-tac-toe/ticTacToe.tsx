@@ -146,7 +146,7 @@ function Board(): JSX.Element {
             <h1 className="text-4xl font-bold mb-8 text-blue-700">Tic-Tac-Toe</h1>
 
             {winner && <h2 className="text-3xl mb-4 text-green-600 font-semibold">Winner: {winner}!</h2>}
-            {isDraw && !winner && <h2 className="text-3xl mb-4 text-yellow-600 font-semibold">It's a Draw!</h2>}
+            {isDraw && !winner && <h2 className="text-3xl mb-4 text-yellow-600 font-semibold">It&apos;s a Draw!</h2>}
             {!winner && !isDraw && <h2 className="text-2xl mb-4 text-gray-800">Current Player: {currentPlayer}</h2>}
 
             <div className="grid grid-cols-3 gap-2 p-4 border-4 border-gray-800 bg-gray-900 rounded-lg shadow-xl">
