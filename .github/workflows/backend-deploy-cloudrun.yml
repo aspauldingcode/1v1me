@@ -115,12 +115,17 @@ jobs:
           set -euxo pipefail
           pwd
           ls -la
-          # Create Vercel project configuration in the correct location
-          mkdir -p frontend/.vercel
-          echo "{"orgId":"$VERCEL_ORG_ID","projectId":"$VERCEL_PROJECT_ID"}" > frontend/.vercel/project.json
-          echo "Linked .vercel contents:" && ls -la frontend/.vercel || true
-          echo "Linked project.json:" && cat frontend/.vercel/project.json || true
+          # Change to frontend directory for deployment
+          cd frontend
+          # Create Vercel project configuration
+          mkdir -p .vercel
+          echo "{"orgId":"$VERCEL_ORG_ID","projectId":"$VERCEL_PROJECT_ID"}" > .vercel/project.json
+          echo "Linked .vercel contents:" && ls -la .vercel || true
+          echo "Linked project.json:" && cat .vercel/project.json || true
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
           vercel --version
           vercel whoami --token "$VERCEL_TOKEN" || true
-          # Deploy frontend directory explicitly from root, avoiding path resolution issues
-          vercel deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug frontend
+          # Deploy from frontend directory using explicit path
+          vercel deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug .
