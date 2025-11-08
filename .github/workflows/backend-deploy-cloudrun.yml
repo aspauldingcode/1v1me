@@ -90,8 +90,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           cd ../frontend
-          # Prebuild locally to avoid remote build issues, then deploy the prebuilt output
-          vercel build --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
-          vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
+          # Trigger a production deploy (non-interactive)
+          vercel --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
 
