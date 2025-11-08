@@ -36,8 +36,8 @@ public class ManageGameService {
             return null;
         }
 
-        String otherUser = usersInQueue.getFirst();
-        usersInQueue.removeFirst();
+        String otherUser = usersInQueue.get(0);
+        usersInQueue.remove(0);
         ActiveGame game = new ActiveGame(new UltimateTTT(), users.get(username), users.get(otherUser));
         activeGames.add(game);
         return game;
