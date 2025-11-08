@@ -1,82 +1,86 @@
 package com.onevoneme.model.game;
 
 import com.onevoneme.model.move.Move;
+import com.onevoneme.model.move.TTTMove;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class UltimateTTT implements Game {
     private int turn = 1;
-    private int[] curBoard = new int[] {0, 0};
-    private int[][] board = new int[9][9];
     private int[][] totalBoard = new int[3][3];
+    private final Map<String, Integer> usernameToTacNumber;
+    private int won = 0;
+    private final String type = "tictactoe";
 
-    private Move lastMove;
+    public UltimateTTT(String user1, String user2) {
+        this.usernameToTacNumber = new HashMap<>();
+        usernameToTacNumber.put(user1, 1);
+        usernameToTacNumber.put(user2, 2);
+    }
 
     @Override
     public boolean validateMove(Move move) {
-//        if(!(move instanceof TTTMove)) return false;
-//        TTTMove tictacMove = (TTTMove) move;
-//
-//        // wrong turn
-//        if(tictacMove.getUserNumber() != turn) return false;
-//
-//        int[] moveLocation = tictacMove.getLocation();
-//        // move already made
-//        if(board[moveLocation[0]][moveLocation[1]] == 0) return false;
-//        // move is outside the current board
-//        if(Math.abs(moveLocation[0] - curBoard[0]) >= 3 || Math.abs(moveLocation[1] - curBoard[1]) >= 3) return false;
+        if(!(move instanceof TTTMove)) return false;
+        TTTMove tictacMove = (TTTMove) move;
+
+        // wrong turn
+        if(usernameToTacNumber.get(tictacMove.getUsername()) != turn) return false;
+
+        int[] moveLocation = tictacMove.getLocation();
+        // move already made
+        if(totalBoard[moveLocation[0]][moveLocation[1]] == 0) return false;
+        // move is outside the current board
+        //if(Math.abs(moveLocation[0] - curBoard[0]) >= 3 || Math.abs(moveLocation[1] - curBoard[1]) >= 3) return false;
 
         return true;
     }
 
     @Override
     public void makeMove(Move move) {
-//        if(!(move instanceof TTTMove)) return;
-//        TTTMove tictacMove = (TTTMove) move;
-//
-//        int[] moveLoc = tictacMove.getLocation();
-//
-//        board[moveLoc[0]][moveLoc[1]] = tictacMove.getUserNumber();
-//
-//        turn = (turn == 1) ? 2 : 1; // toggle the move
+        if(!(move instanceof TTTMove)) return;
+        TTTMove tictacMove = (TTTMove) move;
+
+        int[] moveLoc = tictacMove.getLocation();
+
+        //update the board at the move
+        totalBoard[moveLoc[0]][moveLoc[1]] = usernameToTacNumber.get(tictacMove.getUsername());
+
+        won = isBoardWon();
+
+        turn = (turn == 1) ? 2 : 1; // toggle the move
     }
 
     @Override
-    public Move getLastMove() {
-        return null;
+    public boolean getWon() {
+        return this.won != 0;
     }
 
-
     // if won will return number if false will return null
-    public Integer isBoardWon(int[] boardLoc) {
-        // boardLoc is outside bounds of board
-        if(boardLoc[0] < 0 || boardLoc[1] < 0 || boardLoc[0] > board.length-3 || boardLoc[1] > board.length-3) return null;
+    public int isBoardWon() {
 
         // Check rows
         for(int row = 0; row < 3; row++) {
-            if((board[boardLoc[0]+row][boardLoc[1]] == board[boardLoc[0]+row][boardLoc[1]+1]) &&
-                    (board[boardLoc[0]+row][boardLoc[1]+1] == board[boardLoc[0]+row][boardLoc[1]+2])) {
-                return board[boardLoc[0]+row][boardLoc[1]];
+            if((totalBoard[row][0] == totalBoard[row][1]) && (totalBoard[row][1] == totalBoard[row][2])) {
+                return totalBoard[row][0];
             }
         }
 
         // Check cols
         for(int col = 0; col < 3; col++) {
-            if((board[boardLoc[0]][boardLoc[1]+col] == board[boardLoc[0]+1][boardLoc[1]+col]) &&
-                    (board[boardLoc[0]+1][boardLoc[1]+col] == board[boardLoc[0]+2][boardLoc[1]+col])) {
-                return board[boardLoc[0]][boardLoc[1]+col];
+            if((totalBoard[0][col] == totalBoard[1][col]) && (totalBoard[1][col] == totalBoard[2][col])) {
+                return totalBoard[col][0];
             }
         }
 
         // Check diagonals
-        if((board[boardLoc[0]][boardLoc[1]] == board[boardLoc[0]+1][boardLoc[1]+1]) &&
-                (board[boardLoc[0]+1][boardLoc[1]+1] == board[boardLoc[0]+2][boardLoc[1]+2])) {
-            return board[boardLoc[0]+1][boardLoc[1]+1];
+        if((totalBoard[0][0] == totalBoard[1][1]) == (totalBoard[1][1] == totalBoard[2][2])) {
+            return totalBoard[1][1];
+        }
+        if((totalBoard[2][0] == totalBoard[1][1]) == (totalBoard[1][1] == totalBoard[0][2])) {
+            return totalBoard[1][1];
         }
 
-        if((board[boardLoc[0]+2][boardLoc[1]] == board[boardLoc[0]+1][boardLoc[1]+1]) &&
-                (board[boardLoc[0]+1][boardLoc[1]+1] == board[boardLoc[0]][boardLoc[1]+2])) {
-            return board[boardLoc[0]+1][boardLoc[1]+1];
-        }
-
-        return null;
+        return 0;
     }
 }

@@ -1,6 +1,7 @@
 package com.onevoneme.controller;
 
 import com.onevoneme.model.GameUser;
+import com.onevoneme.model.game.Game;
 import com.onevoneme.services.ManageGameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,8 @@ public class BackendController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody String username) {
+    @PostMapping("/register/{username}")
+    public ResponseEntity<String> registerUser(@PathVariable String username) {
         if(gameService.isUserCreated(username)) {
             return new ResponseEntity<>(HttpStatus.IM_USED);
         }else {
@@ -34,6 +35,16 @@ public class BackendController {
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }
     }
+//
+//    @PostMapping("/queue/{username}")
+//    public Game queueUp(@PathVariable String username) {
+//        return gameService.queueUp(username);
+//    }
+//
+//    @PostMapping("/makemove/{username}")
+//    public Game queueUp(@PathVariable String username) {
+//        return gameService.queueUp(username);
+//    }
 
     @GetMapping("/users")
     public HashMap<String, GameUser> getUsers() {

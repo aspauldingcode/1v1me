@@ -6,6 +6,7 @@ import lombok.Getter;
 public class TTTMove {
     @Getter
     int[] location;
+
     @Getter
-    int userNumber; // 1 or 2, represents X or O
+    String username; // 1 or 2, represents X or O
 }
