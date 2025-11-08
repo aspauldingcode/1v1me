@@ -3,9 +3,6 @@ name: Backend Deploy to Cloud Run
 on:
   push:
     branches: [ "master" ]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-deploy-cloudrun.yml"
   workflow_dispatch:
 
 env:
