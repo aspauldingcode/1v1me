@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: Build and Test (Java 17)
+    name: Build and Test (Java 21)
     runs-on: ubuntu-latest
 
     defaults:
