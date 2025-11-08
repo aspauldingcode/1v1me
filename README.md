@@ -140,14 +140,14 @@ git add .
 # Create initial commit
 git commit -m "Initial commit: Next.js + Spring Boot setup"
 
-# Rename branch to main
-git branch -M main
+# Rename branch to master
+git branch -M master
 
 # Add remote repository
 git remote add origin git@github.com:aspauldingcode/1v1me.git
 
 # Push to GitHub
-git push -u origin main
+git push -u origin master
 ```
 
 ### Step 2: Deploy Frontend to Vercel (CLI Method)
