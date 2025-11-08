@@ -12,8 +12,6 @@ interface SendMove {
     location: number[];
 }
 
-async function getGameState: 
-
 // needs to send username of current player and the movement coordinates
 // this function will be called when the user clicks on a tile on the tic tac toe board.
 async function sendMove(payload: SendMove): Promise<void> {
