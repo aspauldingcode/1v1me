@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
-const API_URL: string = "insert_here"
+const API_URL: string = "insert_here" // TODO: REMEMBER TO CHANGE THIS
 
 interface GetMove {
     username: string;
-    info: number[]; // info[0] is the row, info[1] is the column
+    location: number[]; // info[0] is the row, info[1] is the column
 }
 
 interface SendMove {
     username: string;
-    info: number[];
+    location: number[];
 }
 
 async function getMove(): Promise<GetMove> {
@@ -25,7 +25,7 @@ async function getMove(): Promise<GetMove> {
     // moves = data.info;
     return {
         username: player,
-        info: moves
+        location: moves
     }
 }
 
