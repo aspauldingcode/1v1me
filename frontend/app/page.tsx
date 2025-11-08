@@ -8,6 +8,17 @@ export default function Home() {
         <p className="text-center text-xl text-gray-600 dark:text-gray-300 mb-8">
           Challenge and compete in 1v1 matches
         </p>
+        <div className="mb-8 rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white/60 dark:bg-gray-800/60">
+          <p className="text-center text-green-700 dark:text-green-300 font-medium">
+            Deployed successfully on Vercel ✅
+          </p>
+          <p className="text-center text-sm text-gray-600 dark:text-gray-300 mt-2">
+            Check the example API route:{' '}
+            <a className="underline hover:no-underline text-blue-600 dark:text-blue-400" href="/api/health" target="_blank" rel="noreferrer">
+              /api/health
+            </a>
+          </p>
+        </div>
         <div className="flex justify-center gap-4">
           <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
             Get Started
