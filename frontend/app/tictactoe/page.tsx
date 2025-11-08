@@ -1,16 +1,40 @@
 "use client"
 import { Board } from './tictactoe'
 
-export default function TicTacToePage() {
-  return (
-    <main className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-white">
-      <section className="mx-auto max-w-5xl px-6 py-10">
-        <h1 className="text-3xl font-bold">Tic-Tac-Toe</h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-300">Play locally for now — backend integration coming soon.</p>
-        <div className="mt-6">
-          <Board />
-        </div>
-      </section>
-    </main>
-  )
+export default function TicTacToe() {
+return (
+<div className="flex flex-col items-center justify-center min-h-screen bg-white text-black">
+<h1 className="text-4xl font-bold mb-8">Tic - Tac - Toe</h1>
+
+
+<div className="rounded-2xl border-4 border-black p-8 w-[400px] h-[400px] flex flex-col items-center justify-between">
+{/* Game board */}
+<div className="grid grid-cols-3 grid-rows-3 gap-2 w-48 h-48">
+{[...Array(9)].map((_, i) => (
+<div
+key={i}
+className="border-2 border-black w-full h-full flex items-center justify-center text-3xl font-bold cursor-pointer hover:bg-gray-100"
+>
+{/* X or O goes here */}
+</div>
+))}
+</div>
+
+
+{/* Player info */}
+<div className="flex justify-between w-full mt-6">
+<div className="text-left">
+<p className="font-semibold underline">You (X)</p>
+<p>{'{username}'}</p>
+</div>
+
+
+<div className="text-right">
+<p className="font-semibold underline">Opponent (O)</p>
+<p>{'{username}'}</p>
+</div>
+</div>
+</div>
+</div>
+);
 }
