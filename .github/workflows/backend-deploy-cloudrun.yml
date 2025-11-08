@@ -52,11 +52,12 @@ jobs:
         run: |
           gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 
-      - name: Build and push image with Cloud Build (Artifact Registry)
+      - name: Build and push image with Docker (Artifact Registry)
         run: |
-          gcloud builds submit \
-            --project "$GCP_PROJECT_ID" \
-            --tag "$AR_LOCATION-docker.pkg.dev/$GCP_PROJECT_ID/$AR_REPO/$IMAGE_NAME:$IMAGE_TAG"
+          gcloud auth configure-docker "$AR_LOCATION-docker.pkg.dev" --quiet
+          IMAGE_URI="$AR_LOCATION-docker.pkg.dev/$GCP_PROJECT_ID/$AR_REPO/$IMAGE_NAME:$IMAGE_TAG"
+          docker build -t "$IMAGE_URI" -f Dockerfile .
+          docker push "$IMAGE_URI"
 
       - name: Deploy to Cloud Run
         id: deploy
