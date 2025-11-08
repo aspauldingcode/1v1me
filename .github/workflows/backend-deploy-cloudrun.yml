@@ -80,8 +80,10 @@ jobs:
         run: |
           # Run from frontend and update envs (project already linked via .vercel)
           cd ../frontend
-          echo "$BACKEND_URL" | vercel env update BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
-          echo "$BACKEND_URL" | vercel env update NEXT_PUBLIC_BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
+          vercel env rm BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
+          echo "$BACKEND_URL" | vercel env add BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
+          vercel env rm NEXT_PUBLIC_BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
+          echo "$BACKEND_URL" | vercel env add NEXT_PUBLIC_BACKEND_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
       - name: Trigger Vercel Production Deploy with CLI
         env:
