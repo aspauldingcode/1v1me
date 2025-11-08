@@ -83,6 +83,9 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
         run: |
+          # Ensure local directory is linked to the Vercel project non-interactively
+          mkdir -p .vercel
+          echo "{\"orgId\":\"$VERCEL_ORG_ID\",\"projectId\":\"$VERCEL_PROJECT_ID\"}" > .vercel/project.json
           # Diagnostics to ensure CLI, auth, and linkage are correct
           vercel --version || true
           vercel whoami --token "$VERCEL_TOKEN" || true
@@ -110,6 +113,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           # Trigger a production deploy (non-interactive)
-          vercel --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
+          vercel deploy --prod --confirm --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
 
 
