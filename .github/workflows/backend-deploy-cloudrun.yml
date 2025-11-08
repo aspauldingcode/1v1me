@@ -120,6 +120,5 @@ jobs:
           echo "Linked project.json:" && cat .vercel/project.json || true
           vercel --version
           vercel whoami --token "$VERCEL_TOKEN" || true
-          vercel --prod . --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
-
-
+          # Deploy from current directory explicitly, avoiding path resolution issues
+          vercel deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
