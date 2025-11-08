@@ -2,7 +2,9 @@ package com.onevoneme.services;
 
 import com.onevoneme.model.GameUser;
 import com.onevoneme.model.game.ActiveGame;
+import com.onevoneme.model.game.Game;
 import com.onevoneme.model.game.UltimateTTT;
+import com.onevoneme.model.move.Move;
 import lombok.Getter;
 import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,7 @@ public class ManageGameService {
 
     private final ArrayList<ActiveGame> activeGames = new ArrayList<>();
 
-    public ActiveGame queueUp(String username) {
+    public Game queueUp(String username) {
         // search active games and make sure that the user isn't already in one
         for(ActiveGame g : activeGames) {
             if(g.getUsers()[0].getName().equals(username) ||
@@ -36,15 +38,23 @@ public class ManageGameService {
             return null;
         }
 
-        String otherUser = usersInQueue.get(0);
-        usersInQueue.remove(0);
-        ActiveGame game = new ActiveGame(new UltimateTTT(), users.get(username), users.get(otherUser));
+        String otherUser = usersInQueue.getFirst();
+        usersInQueue.removeFirst();
+
+        Game newGame = new UltimateTTT(otherUser, username);
+        ActiveGame game = new ActiveGame(newGame, users.get(username), users.get(otherUser));
+
         activeGames.add(game);
-        return game;
+
+        return newGame;
     }
 
     public boolean isUserCreated(String username) {
         return users.containsKey(username);
+    }
+
+    public void makeMove(Move move) {
+        String user = move.getUsername();
     }
 
     public void registerUser(String username) {
