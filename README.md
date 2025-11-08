@@ -1,5 +1,7 @@
 # 1v1me
 
+ci: trigger deploy run
+
 A full-stack application for 1v1 challenges and competitions.
 
 ## Tech Stack
