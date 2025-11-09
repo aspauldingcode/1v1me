@@ -23,6 +23,7 @@ export default function TicTacToe() {
   const [isMakingMove, setIsMakingMove] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [gameEnded, setGameEnded] = useState(false)
+  const [redirectCountdown, setRedirectCountdown] = useState(5)
 
   const updateGameState = (data: GameState) => {
     console.log('Updating game state:', { turn: data.turn, winner: data.winner, won: data.won, board: data.totalBoard })
@@ -48,12 +49,9 @@ export default function TicTacToe() {
     setWinner(winnerValue)
     
     // Check if game has ended
-    if (winnerValue !== 0) {
+    if (winnerValue !== 0 && !gameEnded) {
       setGameEnded(true)
-      // After showing the result for 3 seconds, redirect to homepage
-      setTimeout(() => {
-        router.push('/?message=Game ended! Please queue for another match.')
-      }, 3000)
+      setRedirectCountdown(5)
     }
     if (data.totalBoard && Array.isArray(data.totalBoard) && data.totalBoard.length >= 3) {
       const flatBoard: string[] = []
@@ -92,7 +90,12 @@ export default function TicTacToe() {
       }
       const text = await res.text()
       if (!text || text === "null" || text.trim() === "") {
-        // Game has ended and been removed, redirect to homepage
+        // Game has ended and been removed, but make sure we've shown the winner first
+        if (gameEnded) {
+          // Already showed winner, redirect after countdown
+          return
+        }
+        // Game was removed before we saw the winner, redirect immediately
         console.log('Game ended (null response), redirecting to homepage')
         setTimeout(() => {
           router.push('/?message=Game ended! Please queue for another match.')
@@ -135,6 +138,25 @@ export default function TicTacToe() {
     }
   }, [username])
 
+  // Countdown timer when game ends
+  useEffect(() => {
+    if (!gameEnded) return
+    
+    setRedirectCountdown(5)
+    const countdownInterval = setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval)
+          router.push('/?message=Game ended! Please queue for another match.')
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    
+    return () => clearInterval(countdownInterval)
+  }, [gameEnded, router])
+
   // Poll game state continuously when it's not the player's turn
   useEffect(() => {
     if (!username || !gameData) return
@@ -143,17 +165,33 @@ export default function TicTacToe() {
     const currentTurn = gameData.turn || 0
     const isMyTurn = currentTurn === myTacNumber
     const gameWinner = gameData.winner ?? (typeof gameData.won === 'number' ? gameData.won : 0)
-    const gameEnded = gameWinner !== 0
+    const gameHasEnded = gameWinner !== 0
     
-    console.log('Polling check:', { myTacNumber, currentTurn, isMyTurn, gameEnded, gameData })
+    console.log('Polling check:', { myTacNumber, currentTurn, isMyTurn, gameHasEnded, gameEndedState: gameEnded, gameData })
     
-    // Only poll when it's NOT the player's turn and game hasn't ended
-    if (isMyTurn || gameEnded) {
-      console.log('Stopping polling - my turn or game ended')
+    // Continue polling even after game ends to ensure both players see the result
+    // Only stop polling if it's the player's turn and game hasn't ended
+    if (isMyTurn && !gameHasEnded) {
+      console.log('Stopping polling - my turn and game not ended')
       return
     }
     
-    console.log('Starting polling - waiting for opponent')
+    // If game ended and we've already set gameEnded state, poll a few more times then stop
+    if (gameHasEnded && gameEnded) {
+      // Already showing winner, just poll a couple more times to ensure sync, then stop
+      let pollCount = 0
+      const interval = setInterval(() => {
+        pollCount++
+        if (pollCount >= 2) {
+          clearInterval(interval)
+          return
+        }
+        fetchGameState()
+      }, 1000)
+      return () => clearInterval(interval)
+    }
+    
+    console.log('Starting polling - waiting for opponent or checking game end')
     // Fetch immediately, then poll every second
     fetchGameState()
     const interval = setInterval(() => {
@@ -164,7 +202,7 @@ export default function TicTacToe() {
       console.log('Clearing polling interval')
       clearInterval(interval)
     }
-  }, [username, gameData?.turn, gameData?.winner, gameData?.won, gameData?.usernameToTacNumber])
+  }, [username, gameData?.turn, gameData?.winner, gameData?.won, gameData?.usernameToTacNumber, gameEnded])
 
   const handleCellClick = async (cellIndex: number) => {
     if (!username || !gameData || isMakingMove) {
@@ -280,7 +318,9 @@ export default function TicTacToe() {
               <div>
                 <p className="font-bold text-xl sm:text-2xl mb-2">{gameWinner === myTacNumber ? "You won! 🎉" : "You lost! 😔"}</p>
                 {gameEnded && (
-                  <p className="text-xs sm:text-sm text-gray-600 mt-2">Redirecting to homepage...</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-2">
+                    Redirecting to homepage in {redirectCountdown} second{redirectCountdown !== 1 ? 's' : ''}...
+                  </p>
                 )}
               </div>
             )}

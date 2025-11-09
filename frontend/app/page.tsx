@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 type Game = { type?: string } | null
-type Users = Record<string, any>
+type GameUser = {
+  name?: string
+  gamesWon?: number
+  gamesPlayed?: number
+}
+type Users = Record<string, GameUser>
 
 export default function Home() {
   const router = useRouter()
@@ -85,8 +90,23 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [polling, username, router])
 
-  const registered = username && users?.[username]
-  const userList = users ? Object.keys(users) : []
+  const registered = !!(username && users?.[username])
+  
+  // Sort users by games won (descending), then by name
+  const sortedUsers = users ? Object.entries(users)
+    .map(([username, user]) => ({
+      username,
+      gamesWon: user?.gamesWon ?? 0,
+      gamesPlayed: user?.gamesPlayed ?? 0
+    }))
+    .sort((a, b) => {
+      // First sort by games won (descending)
+      if (b.gamesWon !== a.gamesWon) {
+        return b.gamesWon - a.gamesWon
+      }
+      // Then by username (ascending) for tie-breaking
+      return a.username.localeCompare(b.username)
+    }) : []
 
   async function handleAction(action: 'register' | 'queue') {
     if (!username.trim()) {
@@ -194,12 +214,27 @@ export default function Home() {
         </div>
 
         <div className="mt-8 rounded-2xl border border-black/10 bg-white p-4 sm:p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
-          <h2 className="text-base font-semibold">Active Users ({userList.length})</h2>
-          <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {userList.length > 0 ? (
-              userList.map((u) => (
-                <li key={u} className="rounded-md border border-black/10 bg-white/70 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/10">
-                  {u}
+          <h2 className="text-base font-semibold">Leaderboard ({sortedUsers.length})</h2>
+          <ul className="mt-3 space-y-2">
+            {sortedUsers.length > 0 ? (
+              sortedUsers.map((user, index) => (
+                <li 
+                  key={user.username} 
+                  className="rounded-md border border-black/10 bg-white/70 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/10 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-slate-400 w-6 text-right">
+                      {index + 1}.
+                    </span>
+                    <span className="font-medium">{user.username}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
+                    <span className="font-semibold text-green-600 dark:text-green-400">
+                      {user.gamesWon} win{user.gamesWon !== 1 ? 's' : ''}
+                    </span>
+                    <span className="text-slate-400">•</span>
+                    <span>{user.gamesPlayed} game{user.gamesPlayed !== 1 ? 's' : ''}</span>
+                  </div>
                 </li>
               ))
             ) : (
