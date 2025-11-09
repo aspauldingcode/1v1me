@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import RegisterGate from "@/components/RegisterGate";
 
 interface GameState {
   type: string;
@@ -57,6 +58,7 @@ export default function TicTacToe() {
       : 0;
 
   return (
+    <RegisterGate>
     <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black">
       <h1 className="text-4xl font-bold mb-8">Tic - Tac - Toe</h1>
 
@@ -103,5 +105,6 @@ export default function TicTacToe() {
         </div>
       </div>
     </div>
+    </RegisterGate>
   );
 }
