@@ -60,7 +60,7 @@ export default function RegisterPage() {
         setUsername('')
         refreshLocalUsers()
       } else {
-        setResult({ ok: false, code: res.status, message: res.status === 400 ? 'Username taken.' : `Registration failed (${res.status}).` })
+        setResult({ ok: false, code: res.status, message: res.status === 409 ? 'Username taken.' : `Registration failed (${res.status}).` })
       }
     } catch {
       setResult({ ok: false, message: 'Network error while registering.' })

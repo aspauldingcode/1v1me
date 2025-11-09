@@ -45,8 +45,15 @@ export default function RegisterGate({ children }: { children: React.ReactNode }
         } catch {}
         setMessage(`Registered '${sanitized}' successfully. You may play now.`)
         setTimeout(() => setOpen(false), 600)
+      } else if (res.status === 409) {
+        // Username already exists: treat as success and proceed
+        try {
+          localStorage.setItem('onevoneme.currentUser', sanitized)
+        } catch {}
+        setMessage(`Username '${sanitized}' already exists. Continuing…`)
+        setTimeout(() => setOpen(false), 600)
       } else {
-        setMessage(res.status === 400 ? 'Username taken.' : `Registration failed (${res.status}).`)
+        setMessage(`Registration failed (${res.status}).`)
       }
     } catch {
       setMessage('Network error while registering.')

@@ -67,8 +67,14 @@ function QueueContent() {
         } catch {}
         return true
       }
-      // 400 means already exists
-      return res.status === 400
+      // Treat 409 CONFLICT as "already exists" and allow proceed
+      if (res.status === 409) {
+        try {
+          localStorage.setItem('onevoneme.currentUser', name)
+        } catch {}
+        return true
+      }
+      return false
     } catch {
       return false
     }
