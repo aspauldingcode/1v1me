@@ -37,13 +37,22 @@ export default function Home() {
       try {
         const res = await fetch(`/api/gamestate/${encodeURIComponent(username)}`, { cache: 'no-store' })
         if (res.ok) {
-          const game = await res.json() as Game
-          if (game) {
-            setPolling(false)
-            navigateToGame(game)
+          const text = await res.text()
+          if (text && text !== 'null' && text.trim() !== '') {
+            try {
+              const game = JSON.parse(text) as Game
+              if (game && game.type) {
+                setPolling(false)
+                navigateToGame(game)
+              }
+            } catch {
+              // Invalid JSON, continue polling
+            }
           }
         }
-      } catch {}
+      } catch {
+        // Network error, continue polling
+      }
     }
     const interval = setInterval(poll, 2000)
     return () => clearInterval(interval)
@@ -79,13 +88,21 @@ export default function Home() {
         }
       } else {
         if (!res.ok) {
-          setMessage(`Queue failed (${res.status})`)
+          const statusText = res.statusText || 'Unknown error'
+          setMessage(`Queue failed (${res.status}: ${statusText})`)
           return
         }
-        const game = await res.json() as Game
-        if (game) {
-          navigateToGame(game)
-          return
+        const text = await res.text()
+        if (text && text !== 'null' && text.trim() !== '') {
+          try {
+            const game = JSON.parse(text) as Game
+            if (game && game.type) {
+              navigateToGame(game)
+              return
+            }
+          } catch {
+            // If JSON parsing fails, treat as null response
+          }
         }
         setMessage('Queued. Waiting for opponent...')
         setPolling(true)
