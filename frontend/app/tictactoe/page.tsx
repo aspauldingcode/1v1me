@@ -55,6 +55,10 @@ export default function TicTacToe() {
     if (!username) return
     try {
       const res = await fetch(`/api/gamestate/${encodeURIComponent(username)}`, { cache: 'no-store' })
+      if (!res.ok) {
+        setGameData(null)
+        return
+      }
       const text = await res.text()
       if (!text || text === "null" || text.trim() === "") {
         setGameData(null)
@@ -74,6 +78,13 @@ export default function TicTacToe() {
       setGameData(null)
     }
   }
+  
+  // Fetch game state when component mounts with username
+  useEffect(() => {
+    if (username && !isQueued) {
+      fetchGameState()
+    }
+  }, [username])
 
   const queueUp = async () => {
     if (!username) {
@@ -103,7 +114,8 @@ export default function TicTacToe() {
                   clearInterval(queueIntervalRef.current)
                   queueIntervalRef.current = null
                 }
-                fetchGameState()
+                // Fetch game state immediately when game starts
+                await fetchGameState()
               }
             } catch {}
           }
@@ -112,12 +124,24 @@ export default function TicTacToe() {
     }, 1000)
   }
 
+  // Poll game state continuously when it's not the player's turn
   useEffect(() => {
     if (!username || !gameData || isQueued) return
+    
+    const myTacNumber = gameData.usernameToTacNumber?.[username] || 0
+    const isMyTurn = gameData.turn === myTacNumber
+    const gameEnded = (gameData.won ?? gameData.winner ?? 0) !== 0
+    
+    // Only poll when it's NOT the player's turn and game hasn't ended
+    if (isMyTurn || gameEnded) return
+    
+    // Fetch immediately, then poll every second
     fetchGameState()
-    const interval = setInterval(fetchGameState, 1000)
+    const interval = setInterval(() => {
+      fetchGameState()
+    }, 1000)
     return () => clearInterval(interval)
-  }, [username, isQueued])
+  }, [username, isQueued, gameData?.turn, gameData?.won, gameData?.winner, gameData?.usernameToTacNumber])
 
   useEffect(() => () => {
     if (queueIntervalRef.current) clearInterval(queueIntervalRef.current)
@@ -126,7 +150,10 @@ export default function TicTacToe() {
   const handleCellClick = async (cellIndex: number) => {
     if (!username || !gameData || isMakingMove) return
     if (board[cellIndex] !== "") return
-    if (turn !== myTacNumber) return
+    
+    const myTacNumber = gameData.usernameToTacNumber?.[username] || 0
+    if (gameData.turn !== myTacNumber) return
+    if ((gameData.won ?? gameData.winner ?? 0) !== 0) return
 
     const row = Math.floor(cellIndex / 3)
     const col = cellIndex % 3
@@ -146,7 +173,8 @@ export default function TicTacToe() {
         const text = await res.text()
         setError(`Move failed: ${text || res.status}`)
       } else {
-        setTimeout(() => fetchGameState(), 100)
+        // Fetch updated game state after making move
+        await fetchGameState()
       }
     } catch (err) {
       setError(`Error making move: ${err instanceof Error ? err.message : 'Unknown error'}`)

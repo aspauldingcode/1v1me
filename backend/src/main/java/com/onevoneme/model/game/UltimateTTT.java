@@ -20,6 +20,22 @@ public class UltimateTTT implements Game {
         return type;
     }
 
+    public int getTurn() {
+        return turn;
+    }
+
+    public int[][] getTotalBoard() {
+        return totalBoard;
+    }
+
+    public Map<String, Integer> getUsernameToTacNumber() {
+        return usernameToTacNumber;
+    }
+
+    public int getWon() {
+        return won;
+    }
+
     public UltimateTTT(String user1, String user2) {
         this.usernameToTacNumber = new HashMap<>();
         usernameToTacNumber.put(user1, 1);
