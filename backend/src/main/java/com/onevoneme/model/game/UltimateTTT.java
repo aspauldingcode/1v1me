@@ -32,7 +32,7 @@ public class UltimateTTT implements Game {
         return usernameToTacNumber;
     }
 
-    public int getWon() {
+    public int getWinner() {
         return won;
     }
 
