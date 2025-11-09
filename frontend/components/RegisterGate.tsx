@@ -10,7 +10,7 @@ export default function RegisterGate({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     try {
-      const current = typeof window !== 'undefined' ? localStorage.getItem('onevoneme.currentUser') : null
+      const current = typeof window !== 'undefined' ? sessionStorage.getItem('onevoneme.currentUser') : null
       setOpen(!current)
     } catch {
       setOpen(true)
@@ -36,19 +36,14 @@ export default function RegisterGate({ children }: { children: React.ReactNode }
       const res = await fetch(`/api/register/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })
       if (res.ok) {
         try {
-          const key = 'onevoneme.users'
-          const val = localStorage.getItem(key)
-          const map = val ? JSON.parse(val) : {}
-          map[sanitized] = { registeredAt: new Date().toISOString() }
-          localStorage.setItem(key, JSON.stringify(map))
-          localStorage.setItem('onevoneme.currentUser', sanitized)
+          sessionStorage.setItem('onevoneme.currentUser', sanitized)
         } catch {}
         setMessage(`Registered '${sanitized}' successfully. You may play now.`)
         setTimeout(() => setOpen(false), 600)
       } else if (res.status === 409) {
         // Username already exists: treat as success and proceed
         try {
-          localStorage.setItem('onevoneme.currentUser', sanitized)
+          sessionStorage.setItem('onevoneme.currentUser', sanitized)
         } catch {}
         setMessage(`Username '${sanitized}' already exists. Continuing…`)
         setTimeout(() => setOpen(false), 600)

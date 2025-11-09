@@ -15,32 +15,14 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<null | { ok: boolean; code?: number; message: string }>(null)
-  const [localUsers, setLocalUsers] = useState<string[]>([])
   const [currentUser, setCurrentUser] = useState<string | null>(null)
   const [queueLoading, setQueueLoading] = useState(false)
   const [queueMessage, setQueueMessage] = useState<string | null>(null)
   const pollId = useRef<NodeJS.Timeout | null>(null)
 
-  function refreshLocalUsers() {
-    try {
-      const key = 'onevoneme.users'
-      const val = localStorage.getItem(key)
-      if (!val) {
-        setLocalUsers([])
-        return
-      }
-      const obj = JSON.parse(val)
-      const names = typeof obj === 'object' && obj ? Object.keys(obj) : []
-      setLocalUsers(names)
-    } catch {
-      setLocalUsers([])
-    }
-  }
-
   useEffect(() => {
-    refreshLocalUsers()
     try {
-      const cur = typeof window !== 'undefined' ? localStorage.getItem('onevoneme.currentUser') : null
+      const cur = typeof window !== 'undefined' ? sessionStorage.getItem('onevoneme.currentUser') : null
       if (cur) setCurrentUser(cur)
     } catch {}
   }, [])
@@ -58,23 +40,16 @@ export default function RegisterPage() {
       setLoading(true)
       const res = await fetch(`/api/register/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })
       if (res.ok) {
-        // Save to local storage map
-        const key = 'onevoneme.users'
         try {
-          const val = localStorage.getItem(key)
-          const map = val ? JSON.parse(val) : {}
-          map[sanitized] = { registeredAt: new Date().toISOString() }
-          localStorage.setItem(key, JSON.stringify(map))
-          localStorage.setItem('onevoneme.currentUser', sanitized)
+          sessionStorage.setItem('onevoneme.currentUser', sanitized)
           setCurrentUser(sanitized)
         } catch {}
         setResult({ ok: true, code: res.status, message: `Registered '${sanitized}' successfully.` })
         setUsername('')
-        refreshLocalUsers()
       } else {
         if (res.status === 409) {
           try {
-            localStorage.setItem('onevoneme.currentUser', sanitized)
+            sessionStorage.setItem('onevoneme.currentUser', sanitized)
             setCurrentUser(sanitized)
           } catch {}
           setResult({ ok: false, code: res.status, message: 'Username taken. You may queue with this name.' })
@@ -197,18 +172,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <div className="mt-6">
-        <h2 className="text-sm font-semibold">Local Users</h2>
-        {localUsers.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">No users stored locally yet.</p>
-        ) : (
-          <ul className="mt-2 list-disc pl-5 text-sm">
-            {localUsers.map((u) => (
-              <li key={u}>{u}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* Single-user session: no multi-user local listing */}
     </div>
   )
 }

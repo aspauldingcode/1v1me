@@ -25,7 +25,7 @@ function QueueContent() {
 
   useEffect(() => {
     try {
-      const current = typeof window !== 'undefined' ? localStorage.getItem('onevoneme.currentUser') : null
+      const current = typeof window !== 'undefined' ? sessionStorage.getItem('onevoneme.currentUser') : null
       if (current) setUsername(current)
     } catch {}
   }, [])
@@ -63,14 +63,14 @@ function QueueContent() {
       const res = await fetch(`/api/register/${encodeURIComponent(name)}`, { method: 'POST', cache: 'no-store' })
       if (res.ok) {
         try {
-          localStorage.setItem('onevoneme.currentUser', name)
+          sessionStorage.setItem('onevoneme.currentUser', name)
         } catch {}
         return true
       }
       // Treat 409 CONFLICT as "already exists" and allow proceed
       if (res.status === 409) {
         try {
-          localStorage.setItem('onevoneme.currentUser', name)
+          sessionStorage.setItem('onevoneme.currentUser', name)
         } catch {}
         return true
       }
