@@ -58,25 +58,25 @@ function QueueContent() {
     return () => clearInterval(id)
   }, [])
 
-  async function ensureRegistered(name: string) {
+  async function ensureRegistered(name: string): Promise<{ ok: boolean; status?: number }> {
     try {
       const res = await fetch(`/api/register/${encodeURIComponent(name)}`, { method: 'POST', cache: 'no-store' })
       if (res.ok) {
         try {
           sessionStorage.setItem('onevoneme.currentUser', name)
         } catch {}
-        return true
+        return { ok: true, status: res.status }
       }
       // Treat 409 CONFLICT as "already exists" and allow proceed
       if (res.status === 409) {
         try {
           sessionStorage.setItem('onevoneme.currentUser', name)
         } catch {}
-        return true
+        return { ok: true, status: res.status }
       }
-      return false
+      return { ok: false, status: res.status }
     } catch {
-      return false
+      return { ok: false }
     }
   }
 
@@ -117,9 +117,9 @@ function QueueContent() {
     }
     setQueueLoading(true)
     try {
-      const regOk = await ensureRegistered(sanitized)
-      if (!regOk) {
-        setQueueMessage('Could not register username. Try again.')
+      const reg = await ensureRegistered(sanitized)
+      if (!reg.ok) {
+        setQueueMessage(`Could not register username. Try again.${reg.status ? ` (status ${reg.status})` : ''}`)
         return
       }
       const res = await fetch(`/api/queue/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })

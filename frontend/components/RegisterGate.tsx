@@ -64,7 +64,7 @@ export default function RegisterGate({ children }: { children: React.ReactNode }
       {open && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-[92%] max-w-md rounded-xl border border-black/10 bg-white p-5 shadow-xl dark:border-white/10 dark:bg-slate-900">
-            <h2 className="text-base font-semibold">Registration Required</h2>
+            <h2 className="text-base font-semibold">Register Username</h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Please register a username to play. You can still open the ℹ️ status tray.
             </p>
