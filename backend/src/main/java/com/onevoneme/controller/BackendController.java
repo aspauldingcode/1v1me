@@ -30,7 +30,7 @@ public class BackendController {
     @PostMapping("/register/{username}")
     public ResponseEntity<String> registerUser(@PathVariable String username) {
         if(gameService.isUserCreated(username)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }else {
             gameService.registerUser(username);
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
