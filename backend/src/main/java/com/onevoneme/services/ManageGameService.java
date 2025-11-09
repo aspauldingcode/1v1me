@@ -5,7 +5,6 @@ import com.onevoneme.model.game.ActiveGame;
 import com.onevoneme.model.game.Game;
 import com.onevoneme.model.game.UltimateTTT;
 import com.onevoneme.model.move.Move;
-import lombok.Getter;
 import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +14,6 @@ import java.util.HashSet;
 
 @Service
 public class ManageGameService {
-    @Getter
     private final HashMap<String, GameUser> users = new HashMap<>();
 
     private final ArrayList<String> usersInQueue = new ArrayList<>();
