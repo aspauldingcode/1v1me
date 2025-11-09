@@ -43,12 +43,12 @@ export default function TicTacToe() {
       console.log('Setting turn to:', data.turn)
       setTurn(data.turn)
     }
-    // winner is the integer (0, 1, or 2), won might be boolean from getWon()
+    // winner is the integer (0 = ongoing, 1 or 2 = winner, -1 = cat's game/tie)
     const winnerValue = data.winner ?? (typeof data.won === 'number' ? data.won : 0)
     console.log('Game state update:', { winner: data.winner, won: data.won, winnerValue, turn: data.turn })
     setWinner(winnerValue)
     
-    // Check if game has ended
+    // Check if game has ended (winner is not 0, including -1 for cat's game)
     if (winnerValue !== 0 && !gameEnded) {
       setGameEnded(true)
       setRedirectCountdown(5)
@@ -219,7 +219,7 @@ export default function TicTacToe() {
       console.log('Not your turn:', { turn: gameData.turn, myTacNumber })
       return
     }
-    // Check if game ended: winner should be 0 if game is ongoing, 1 or 2 if someone won
+    // Check if game ended: winner should be 0 if game is ongoing, 1/2 if someone won, -1 if cat's game
     const gameWinner = gameData.winner ?? (typeof gameData.won === 'number' ? gameData.won : 0)
     if (gameWinner !== 0) {
       console.log('Game already ended:', { winner: gameData.winner, won: gameData.won, gameWinner })
@@ -314,6 +314,15 @@ export default function TicTacToe() {
           <div className="mt-4 text-center text-sm sm:text-base">
             {gameWinner === 0 ? (
               <p>{currentTurn === myTacNumber ? "Your turn!" : "Opponent's turn"}</p>
+            ) : gameWinner === -1 ? (
+              <div>
+                <p className="font-bold text-xl sm:text-2xl mb-2">Cat's game! 🐱 It's a tie!</p>
+                {gameEnded && (
+                  <p className="text-xs sm:text-sm text-gray-600 mt-2">
+                    Redirecting to homepage in {redirectCountdown} second{redirectCountdown !== 1 ? 's' : ''}...
+                  </p>
+                )}
+              </div>
             ) : (
               <div>
                 <p className="font-bold text-xl sm:text-2xl mb-2">{gameWinner === myTacNumber ? "You won! 🎉" : "You lost! 😔"}</p>

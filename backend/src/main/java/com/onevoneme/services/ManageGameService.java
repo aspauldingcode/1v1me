@@ -103,7 +103,7 @@ public class ManageGameService {
             
             Game game = g.getGame();
             
-            // Check if game has ended (winner is not 0)
+            // Check if game has ended (winner is not 0, including -1 for cat's game)
             if (game instanceof UltimateTTT) {
                 UltimateTTT tttGame = (UltimateTTT) game;
                 int winner = tttGame.getWinner();
@@ -151,11 +151,15 @@ public class ManageGameService {
             Integer user2TacNumber = usernameToTacNumber.get(user2Name);
             
             // winner is 1 or 2 (tac number), increment games won for the winner
-            if (user1TacNumber != null && user1TacNumber == winner) {
-                user1.setGamesWon(user1.getGamesWon() + 1);
-            } else if (user2TacNumber != null && user2TacNumber == winner) {
-                user2.setGamesWon(user2.getGamesWon() + 1);
+            // winner == -1 means cat's game (tie), so no one gets a win
+            if (winner > 0) {
+                if (user1TacNumber != null && user1TacNumber == winner) {
+                    user1.setGamesWon(user1.getGamesWon() + 1);
+                } else if (user2TacNumber != null && user2TacNumber == winner) {
+                    user2.setGamesWon(user2.getGamesWon() + 1);
+                }
             }
+            // If winner == -1 (cat's game), both players played but no one wins
         }
     }
 

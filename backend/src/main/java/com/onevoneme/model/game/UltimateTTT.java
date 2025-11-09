@@ -73,6 +73,11 @@ public class UltimateTTT implements Game {
         totalBoard[moveLoc[0]][moveLoc[1]] = usernameToTacNumber.get(tictacMove.getUsername());
 
         won = isBoardWon();
+        
+        // If no winner and board is full, set won to -1 to indicate cat's game
+        if(won == 0 && isBoardFull()) {
+            won = -1;
+        }
 
         turn = (turn == 1) ? 2 : 1; // toggle the move
     }
@@ -82,31 +87,48 @@ public class UltimateTTT implements Game {
         return this.won != 0;
     }
 
-    // if won will return number if false will return null
+    // Returns winner number (1 or 2) if someone won, 0 if no winner yet or cat's game
     public int isBoardWon() {
-
         // Check rows
         for(int row = 0; row < 3; row++) {
-            if((totalBoard[row][0] == totalBoard[row][1]) && (totalBoard[row][1] == totalBoard[row][2])) {
-                return totalBoard[row][0];
+            int val = totalBoard[row][0];
+            if(val != 0 && val == totalBoard[row][1] && val == totalBoard[row][2]) {
+                return val;
             }
         }
 
         // Check cols
         for(int col = 0; col < 3; col++) {
-            if((totalBoard[0][col] == totalBoard[1][col]) && (totalBoard[1][col] == totalBoard[2][col])) {
-                return totalBoard[col][0];
+            int val = totalBoard[0][col];
+            if(val != 0 && val == totalBoard[1][col] && val == totalBoard[2][col]) {
+                return val;
             }
         }
 
-        // Check diagonals
-        if((totalBoard[0][0] == totalBoard[1][1]) == (totalBoard[1][1] == totalBoard[2][2])) {
-            return totalBoard[1][1];
+        // Check diagonal top-left to bottom-right
+        int diag1Val = totalBoard[0][0];
+        if(diag1Val != 0 && diag1Val == totalBoard[1][1] && diag1Val == totalBoard[2][2]) {
+            return diag1Val;
         }
-        if((totalBoard[2][0] == totalBoard[1][1]) == (totalBoard[1][1] == totalBoard[0][2])) {
-            return totalBoard[1][1];
+
+        // Check diagonal bottom-left to top-right
+        int diag2Val = totalBoard[2][0];
+        if(diag2Val != 0 && diag2Val == totalBoard[1][1] && diag2Val == totalBoard[0][2]) {
+            return diag2Val;
         }
 
         return 0;
+    }
+    
+    // Check if board is full (cat's game)
+    public boolean isBoardFull() {
+        for(int row = 0; row < 3; row++) {
+            for(int col = 0; col < 3; col++) {
+                if(totalBoard[row][col] == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
