@@ -1,8 +1,10 @@
 package com.onevoneme.model.game;
 
+import com.onevoneme.model.GameUser;
 import com.onevoneme.model.move.Move;
 import com.onevoneme.model.move.TTTMove;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +12,7 @@ public class UltimateTTT implements Game {
     private int turn = 1;
     private int[][] totalBoard = new int[3][3];
     private final Map<String, Integer> usernameToTacNumber;
+    private final String[] users;
     private int won = 0;
     private final String type = "tictactoe";
 
@@ -17,6 +20,9 @@ public class UltimateTTT implements Game {
         this.usernameToTacNumber = new HashMap<>();
         usernameToTacNumber.put(user1, 1);
         usernameToTacNumber.put(user2, 2);
+        users = new String[2];
+        users[0] = user1;
+        users[1] = user2;
     }
 
     @Override
