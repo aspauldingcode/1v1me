@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import RegisterGate from "@/components/RegisterGate";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Move = "ROCK" | "PAPER" | "SCISSORS";
 type MoveResponse = { username: string; rps: Move | null };
@@ -15,29 +15,27 @@ function decideWinner(a: Move, b: Move): "YOU" | "OPPONENT" | "DRAW" {
     (a === "ROCK" && b === "SCISSORS") ||
     (a === "PAPER" && b === "ROCK") ||
     (a === "SCISSORS" && b === "PAPER")
-  )
-    return "YOU";
+  ) return "YOU";
   return "OPPONENT";
 }
 
-export default function RockPaperScissorsPage() {
-  // user identities (typed manually)
-  const [you, setYou] = useState(
-    () => (typeof window === "undefined" ? "" : localStorage.getItem("rps_you") || "")
-  );
-  const [opp, setOpp] = useState(
-    () => (typeof window === "undefined" ? "" : localStorage.getItem("rps_opp") || "")
-  );
-  useEffect(() => { if (you) localStorage.setItem("rps_you", you.trim()); }, [you]);
-  useEffect(() => { if (opp) localStorage.setItem("rps_opp", opp.trim()); }, [opp]);
+export default function RpsPage() {
+  // ===== 1) game context from queue (URL query) =====
+  const qp = useSearchParams();
+  const youFromQueue = (qp.get("you") || "").trim();
+  const oppFromQueue = (qp.get("opponent") || "").trim();
+  const gameId = qp.get("gameId") || ""; // optional – included for future use
 
-  // round state
+  // banner if people open this page directly
+  const missingContext = !youFromQueue || !oppFromQueue;
+
+  // ===== 2) round state =====
   const [yourMove, setYourMove] = useState<Move | null>(null);
   const [oppMove, setOppMove] = useState<Move | null>(null);
   const [phase, setPhase] = useState<"IDLE" | "POLLING" | "DONE" | "ERROR">("IDLE");
   const [error, setError] = useState<string | null>(null);
 
-  // polling timer
+  // ===== 3) polling timer =====
   const pollTimer = useRef<NodeJS.Timeout | null>(null);
   const pollCount = useRef(0);
   function stopPoll() {
@@ -46,36 +44,31 @@ export default function RockPaperScissorsPage() {
   }
   useEffect(() => () => stopPoll(), []);
 
-  // submit your move, then poll opponent
+  // ===== 4) submit your move + poll opponent =====
   async function submitMove(m: Move) {
-    const me = you.trim();
-    const opponent = opp.trim();
-    if (!me || !opponent) {
-      setError("Enter both usernames.");
-      return;
-    }
+    if (missingContext) return;
     try {
       setError(null);
       setYourMove(m);
       setOppMove(null);
       setPhase("POLLING");
 
+      // NOTE: backend ignores gameId for now; add it to body if you want.
       const r = await fetch(`${API}/set_move/rock_paper_scissors`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
-        body: JSON.stringify({ username: me, rps: m }),
+        body: JSON.stringify({ username: youFromQueue, rps: m }),
       });
       if (!r.ok) throw new Error(`Submit HTTP ${r.status}`);
 
-      // poll opponent
       pollCount.current = 0;
       stopPoll();
       pollTimer.current = setInterval(async () => {
         pollCount.current += 1;
         try {
           const res = await fetch(
-            `${API}/get_move/rock_paper_scissors/${encodeURIComponent(opponent)}`,
+            `${API}/get_move/rock_paper_scissors/${encodeURIComponent(oppFromQueue)}`,
             { cache: "no-store" }
           );
           if (!res.ok) throw new Error(`Poll HTTP ${res.status}`);
@@ -116,7 +109,7 @@ export default function RockPaperScissorsPage() {
 
   function MovePic({ m, src, alt }: { m: Move; src: string; alt: string }) {
     const selected = yourMove === m;
-    const disabled = phase === "POLLING" || phase === "DONE";
+    const disabled = phase === "POLLING" || phase === "DONE" || missingContext;
     return (
       <button
         onClick={() => submitMove(m)}
@@ -138,52 +131,43 @@ export default function RockPaperScissorsPage() {
   }
 
   return (
-    <RegisterGate>
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold">Rock · Paper · Scissors</h1>
 
-      {/* usernames */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="space-y-2">
-          <label className="text-sm text-gray-600">Your username</label>
-          <input
-            className="w-full px-3 py-2 border rounded-xl"
-            value={you}
-            onChange={(e) => setYou(e.target.value)}
-            placeholder="e.g. joel"
-          />
+      {/* Context banner */}
+      {missingContext && (
+        <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3">
+          <div className="font-medium">Waiting for game context…</div>
+          <div className="text-sm opacity-80">
+            This page should be opened by the Queue screen, which will pass
+            <code className="mx-1">you</code> and
+            <code className="mx-1">opponent</code> in the URL.
+            For manual testing:{" "}
+            <code>/rock-paper-scissors?you=alice&opponent=bob</code>
+          </div>
         </div>
-        <div className="space-y-2">
-          <label className="text-sm text-gray-600">Opponent username</label>
-          <input
-            className="w-full px-3 py-2 border rounded-xl"
-            value={opp}
-            onChange={(e) => setOpp(e.target.value)}
-            placeholder="e.g. alex"
-          />
-        </div>
-      </div>
+      )}
 
       {error && <p className="text-red-600">{error}</p>}
 
-      {/* game card */}
+      {/* Game card */}
       <div className="rounded-2xl border p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* left: you + pictures */}
+          {/* Left: you + pictures */}
           <div>
             <div className="text-xs uppercase text-gray-500 mb-1">You</div>
-            <div className="text-lg font-semibold mb-3">{you || "—"}</div>
+            <div className="text-lg font-semibold mb-3">{youFromQueue || "—"}</div>
             <div className="space-y-3">
-              <MovePic m="ROCK"     src="/rps/rock.jpeg"     alt="Rock" />
-              <MovePic m="PAPER"    src="/rps/paper.jpeg"    alt="Paper" />
-              <MovePic m="SCISSORS" src="/rps/scissors.jpeg" alt="Scissors" />
+              <MovePic m="ROCK"     src="/rps/rock.png"     alt="Rock" />
+              <MovePic m="PAPER"    src="/rps/paper.png"    alt="Paper" />
+              <MovePic m="SCISSORS" src="/rps/scissors.png" alt="Scissors" />
             </div>
           </div>
 
-          {/* right: opponent status */}
+          {/* Right: opponent status */}
           <div>
             <div className="text-xs uppercase text-gray-500 mb-1">Opponent</div>
-            <div className="text-lg font-semibold mb-3">{opp || "—"}</div>
+            <div className="text-lg font-semibold mb-3">{oppFromQueue || "—"}</div>
             <div className="rounded-xl border p-4 h-[170px] flex items-center justify-center text-lg">
               {oppMove
                 ? oppMove
@@ -194,7 +178,7 @@ export default function RockPaperScissorsPage() {
           </div>
         </div>
 
-        {/* outcome tray */}
+        {/* Outcome tray */}
         {(yourMove || oppMove) && (
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             <div className="rounded-xl border p-3">
@@ -221,21 +205,20 @@ export default function RockPaperScissorsPage() {
         )}
 
         <div className="mt-4">
-          <button onClick={resetRound} className="px-3 py-2 rounded-2xl border">Reset round</button>
+          <button onClick={resetRound} className="px-3 py-2 rounded-2xl border">
+            Reset round
+          </button>
         </div>
       </div>
 
-      {/* inline CSS for the pulsing “Thinking…” effect */}
+      {/* inline CSS for pulsing “Thinking…” */}
       <style jsx global>{`
         @keyframes thinkingPulse {
           0%, 100% { opacity: 0.55; transform: translateY(0); }
           50%      { opacity: 1;    transform: translateY(-1px); }
         }
-        .animate-thinking {
-          animation: thinkingPulse 1.2s ease-in-out infinite;
-        }
+        .animate-thinking { animation: thinkingPulse 1.2s ease-in-out infinite; }
       `}</style>
     </div>
-    </RegisterGate>
   );
 }
