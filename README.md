@@ -1,15 +1,25 @@
-# 1v1me
+<h2 align="center">1v1me</h2>
 
-| <img src="preview1.png" alt="Preview 1" height="220"> | <img src="preview2.png" alt="Preview 2" height="220"> |
-|--------------------------|--------------------------|
-**Play now at [https://1v1me-flame.vercel.app](https://1v1me-flame.vercel.app)!**
+<p align="center">
+  <a href="https://1v1me-flame.vercel.app">
+    <img src="preview1.png" alt="1v1me Desktop Preview" width="90%">
+  </a>
+</p>
+
+<p align="center">
+  <b><a href="https://1v1me-flame.vercel.app">Play now at 1v1me-flame.vercel.app</a></b>
+</p>
+
+---
 
 Jump into quick, head-to-head minigames on a lightweight platform.  
-Looking for an instant 1v1? 1v1me is ready when you are!  
-Choose classics like tic-tac-toe or rock-paper-scissors and play in seconds!
+Looking for an instant 1v1? **1v1me** is ready when you are!  
+Choose classics like **tic-tac-toe** or **rock-paper-scissors** and start playing in seconds!
 
-Built with a Next.js + Tailwind frontend and a Spring Boot backend, the site lets you pick a username, jump into a queue, and connect to game APIs over REST.  
-Grab your phone; every screen is mobile-ready.
+Built with a **Next.js + Tailwind** frontend and a **Spring Boot** backend, the site lets you pick a username, jump into a queue, and connect to game APIs over REST.  
+Play seamlessly on any device, desktop, laptop, or phone.
+[View mobile preview →](preview2.png)
+
 
 ## Tech Stack
 
