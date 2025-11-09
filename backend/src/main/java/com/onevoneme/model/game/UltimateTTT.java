@@ -16,6 +16,10 @@ public class UltimateTTT implements Game {
     private int won = 0;
     private final String type = "tictactoe";
 
+    public String getType() {
+        return type;
+    }
+
     public UltimateTTT(String user1, String user2) {
         this.usernameToTacNumber = new HashMap<>();
         usernameToTacNumber.put(user1, 1);

@@ -13,6 +13,12 @@ public class RockPaperScissors implements Game {
     private Map<String, Integer> usernameToCode;
 
     private final ArrayList<Move[]> moveHistory;
+    
+    private final String type = "rockpaperscissors";
+
+    public String getType() {
+        return type;
+    }
 
     public RockPaperScissors(String user1, String user2) {
         users = new String[2];

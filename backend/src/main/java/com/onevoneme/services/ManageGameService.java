@@ -3,6 +3,7 @@ package com.onevoneme.services;
 import com.onevoneme.model.GameUser;
 import com.onevoneme.model.game.ActiveGame;
 import com.onevoneme.model.game.Game;
+import com.onevoneme.model.game.RockPaperScissors;
 import com.onevoneme.model.game.UltimateTTT;
 import com.onevoneme.model.move.Move;
 import org.apache.catalina.User;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 
 @Service
 public class ManageGameService {
@@ -19,6 +21,8 @@ public class ManageGameService {
     private final ArrayList<String> usersInQueue = new ArrayList<>();
 
     private final ArrayList<ActiveGame> activeGames = new ArrayList<>();
+    
+    private final Random random = new Random();
 
     public Game queueUp(String username) {
         // Require registration; avoid creating games with null users
@@ -58,7 +62,14 @@ public class ManageGameService {
             return null;
         }
 
-        Game newGame = new UltimateTTT(otherUser, username);
+        // Randomly choose between tictactoe and rockpaperscissors
+        Game newGame;
+        if (random.nextBoolean()) {
+            newGame = new UltimateTTT(otherUser, username);
+        } else {
+            newGame = new RockPaperScissors(otherUser, username);
+        }
+        
         ActiveGame game = new ActiveGame(newGame, users.get(username), users.get(otherUser));
 
         activeGames.add(game);
