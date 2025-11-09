@@ -42,14 +42,20 @@ public class BackendController {
         return gameService.queueUp(username);
     }
 
-//    @PostMapping("/make_move/tictactoe/{username}")
-//    public Game makeTicTacMove(@PathVariable String username, @RequestBody TTTMove move) {
-//        return gameService.makeMove(move);
-//    }
-//
-//    @PostMapping("/make_move/tictactoe/{username}")
-//    public Game queueUp(@PathVariable String username) {
-//        return gameService.queueUp(username);
+    @PostMapping("/make_move/tictactoe/{username}")
+    public ResponseEntity<String> makeTicTacMove(@PathVariable String username, @RequestBody TTTMove move) {
+        boolean success = gameService.makeMove(move);
+        return success ? ResponseEntity.ok("success") : ResponseEntity.badRequest().body("unsuccessful");
+    }
+
+    @GetMapping("/gamestate/{username}")
+    public Game getGameState(@PathVariable String username) {
+        return gameService.getGameState(username);
+    }
+
+//    @PostMapping("/make_move/rockpaperscissors/{username}")
+//    public ResponseEntity<String> makeTicTacMove(@PathVariable String username, @RequestBody TTTMove move) {
+//        boolean success = gameService.makeMove(move);
 //    }
 
     @GetMapping("/users")

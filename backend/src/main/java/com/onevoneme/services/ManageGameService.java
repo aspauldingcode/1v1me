@@ -53,8 +53,22 @@ public class ManageGameService {
         return users.containsKey(username);
     }
 
-    public void makeMove(Move move) {
+    public boolean makeMove(Move move) {
         String user = move.getUsername();
+        for(ActiveGame g : activeGames) {
+            if(!(g.getUsers()[0].getName().equals(user) || g.getUsers()[1].getName().equals(user))) continue;
+            g.getGame().makeMove(move);
+            return true;
+        }
+        return false;
+    }
+
+    public Game getGameState(String username) {
+        for(ActiveGame g : activeGames) {
+            if(!(g.getUsers()[0].getName().equals(username) || g.getUsers()[1].getName().equals(username))) continue;
+            return g.getGame();
+        }
+        return null;
     }
 
     public void registerUser(String username) {

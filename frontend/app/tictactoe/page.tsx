@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import RegisterGate from "@/components/RegisterGate";
 
 interface GameState {
   type: string;
@@ -15,9 +16,11 @@ export default function TicTacToe() {
   const [opponent, setOpponent] = useState("");
   const [turn, setTurn] = useState(0);
   const [winner, setWinner] = useState(0);
+  const [gameData, setGameData] = useState<GameState | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const username = typeof window !== "undefined" ? localStorage.getItem("username") : null;
+  const username =
+    typeof window !== "undefined" ? localStorage.getItem("username") : null;
 
   useEffect(() => {
     if (!username) return;
@@ -26,8 +29,8 @@ export default function TicTacToe() {
       try {
         const res = await fetch(`${API_URL}/api/gameState/${username}`);
         const data: GameState = await res.json();
+        setGameData(data);
 
-        // Identify players
         const entries = Object.entries(data.usernameToTacNumber);
         const currentPlayer = entries.find(([, num]) => num === 1)?.[0] || "";
         const opponentPlayer = entries.find(([, num]) => num === 2)?.[0] || "";
@@ -37,9 +40,8 @@ export default function TicTacToe() {
         setTurn(data.turn);
         setWinner(data.winner);
 
-        // (Optional) If your API later includes board data:
+        // Optional: if your API includes board state
         // setBoard(data.board);
-
       } catch (err) {
         console.error("Error fetching game:", err);
       }
@@ -50,7 +52,13 @@ export default function TicTacToe() {
     return () => clearInterval(interval);
   }, [API_URL, username]);
 
+  const myTacNumber =
+    username && gameData
+      ? gameData.usernameToTacNumber[username] || 0
+      : 0;
+
   return (
+    <RegisterGate>
     <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black">
       <h1 className="text-4xl font-bold mb-8">Tic - Tac - Toe</h1>
 
@@ -71,13 +79,13 @@ export default function TicTacToe() {
         <div className="flex justify-between w-full mt-6">
           <div className="text-left">
             <p className="font-semibold underline">
-              You ({player === username ? "X" : "O"})
+              You ({myTacNumber === 1 ? "X" : "O"})
             </p>
             <p>{player}</p>
           </div>
           <div className="text-right">
             <p className="font-semibold underline">
-              Opponent ({player === username ? "O" : "X"})
+              Opponent ({myTacNumber === 1 ? "O" : "X"})
             </p>
             <p>{opponent}</p>
           </div>
@@ -86,16 +94,17 @@ export default function TicTacToe() {
         {/* Game status */}
         <div className="mt-4 text-center">
           {winner === 0 ? (
-            <p>{turn === data?.usernameToTacNumber[username] ? "Your turn!" : "Opponent’s turn"}</p>
+            <p>
+              {turn === myTacNumber ? "Your turn!" : "Opponent’s turn"}
+            </p>
           ) : (
             <p className="font-bold">
-              {winner === data?.usernameToTacNumber[username]
-                ? "You won!"
-                : "You lost!"}
+              {winner === myTacNumber ? "You won!" : "You lost!"}
             </p>
           )}
         </div>
       </div>
     </div>
+    </RegisterGate>
   );
 }
