@@ -149,7 +149,11 @@ function QueueContent() {
 
   async function onQueue() {
     setQueueMessage(null)
-    const sanitized = sanitize(username)
+    if (!currentUser) {
+      setQueueMessage('Please register a username first.')
+      return
+    }
+    const sanitized = sanitize(currentUser)
     const isLengthOk = validator.isLength(sanitized, { min: 3, max: 32 })
     const isCharsOk = validator.matches(sanitized, /^[A-Za-z0-9_-]+$/)
     if (!sanitized || !isLengthOk || !isCharsOk) {
@@ -158,11 +162,6 @@ function QueueContent() {
     }
     setQueueLoading(true)
     try {
-      const reg = await ensureRegistered(sanitized)
-      if (!reg.ok) {
-        setQueueMessage(`Could not register username. Try again.${reg.status ? ` (status ${reg.status})` : ''}`)
-        return
-      }
       const res = await fetch(`/api/queue/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })
       if (!res.ok) {
         setQueueMessage(`Queue failed (status ${res.status}).`)
@@ -198,24 +197,28 @@ function QueueContent() {
         <label htmlFor="username" className="text-sm font-medium">Your username</label>
         <div className="mt-2 flex items-center gap-2">
           <input
-            id="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter username"
-            className="flex-1 rounded-md border border-black/10 bg-white/70 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/10"
-          />
-          <button
-            onClick={() => void (!currentUser ? registerOnly() : onQueue())}
-            disabled={!currentUser ? registerLoading : queueLoading}
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
-          >
-            {!currentUser ? (registerLoading ? 'Registering…' : 'Register') : (queueLoading ? 'Queueing…' : 'Queue Me')}
-          </button>
-        </div>
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          disabled={!!currentUser}
+          placeholder="Enter username"
+          className="flex-1 rounded-md border border-black/10 bg-white/70 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/10"
+        />
+        <button
+          onClick={() => void (!currentUser ? registerOnly() : onQueue())}
+          disabled={!currentUser ? registerLoading : queueLoading}
+          className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
+        >
+          {!currentUser ? (registerLoading ? 'Registering…' : 'Register') : (queueLoading ? 'Queueing…' : 'Queue Me')}
+        </button>
+      </div>
         <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
           Allowed: letters, digits, underscore, hyphen. Register first, then join queue.
         </p>
+        {currentUser && (
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Registered as <span className="font-medium">{currentUser}</span>.</p>
+        )}
         {queueMessage && (
           <p className="mt-2 text-xs text-slate-700 dark:text-slate-200">{queueMessage}</p>
         )}
