@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Move = "ROCK" | "PAPER" | "SCISSORS";
@@ -19,7 +19,7 @@ function decideWinner(a: Move, b: Move): "YOU" | "OPPONENT" | "DRAW" {
   return "OPPONENT";
 }
 
-export default function RpsPage() {
+function RpsClient() {
   // ===== 1) game context from queue (URL query) =====
   const qp = useSearchParams();
   const youFromQueue = (qp.get("you") || "").trim();
@@ -220,5 +220,32 @@ export default function RpsPage() {
         .animate-thinking { animation: thinkingPulse 1.2s ease-in-out infinite; }
       `}</style>
     </div>
+  );
+}
+
+function RpsSkeleton() {
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Rock · Paper · Scissors</h1>
+      <div className="rounded-2xl border p-5">
+        <div className="h-8 w-40 bg-gray-200 rounded mb-4" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <div className="h-20 bg-gray-200 rounded" />
+            <div className="h-20 bg-gray-200 rounded" />
+            <div className="h-20 bg-gray-200 rounded" />
+          </div>
+          <div className="h-[170px] bg-gray-200 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function RpsPage() {
+  return (
+    <Suspense fallback={<RpsSkeleton />}>
+      <RpsClient />
+    </Suspense>
   );
 }

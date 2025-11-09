@@ -18,6 +18,7 @@ function QueueContent() {
   const router = useRouter()
   const [username, setUsername] = useState('')
   const [currentUser, setCurrentUser] = useState<string | null>(null)
+  const [isRegistered, setIsRegistered] = useState(false)
   const [users, setUsers] = useState<BackendUsers | null>(null)
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [queueLoading, setQueueLoading] = useState(false)
@@ -78,6 +79,15 @@ function QueueContent() {
     return () => clearInterval(id)
   }, [])
 
+  // Keep frontend synced to backend: verify currentUser is actually registered
+  useEffect(() => {
+    if (currentUser && users) {
+      setIsRegistered(Boolean(users[currentUser]))
+    } else {
+      setIsRegistered(false)
+    }
+  }, [currentUser, users])
+
   async function ensureRegistered(name: string): Promise<{ ok: boolean; status?: number }> {
     try {
       const res = await fetch(`/api/register/${encodeURIComponent(name)}`, { method: 'POST', cache: 'no-store' })
@@ -119,12 +129,14 @@ function QueueContent() {
           sessionStorage.setItem('onevoneme.currentUser', sanitized)
         } catch {}
         setCurrentUser(sanitized)
+        setIsRegistered(true)
         setQueueMessage(`Registered '${sanitized}' successfully.`)
       } else if (res.status === 409) {
         try {
           sessionStorage.setItem('onevoneme.currentUser', sanitized)
         } catch {}
         setCurrentUser(sanitized)
+        setIsRegistered(true)
         setQueueMessage(`Username taken. You may queue with this name. (status ${res.status})`)
       } else if (res.status === 400) {
         let msg = 'Username not allowed by policy.'
@@ -170,7 +182,7 @@ function QueueContent() {
 
   async function onQueue() {
     setQueueMessage(null)
-    if (!currentUser) {
+    if (!currentUser || !isRegistered) {
       setQueueMessage('Please register a username first.')
       return
     }
@@ -222,23 +234,26 @@ function QueueContent() {
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          disabled={!!currentUser}
+          disabled={isRegistered}
           placeholder="Enter username"
           className="flex-1 rounded-md border border-black/10 bg-white/70 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/10"
         />
         <button
-          onClick={() => void (!currentUser ? registerOnly() : onQueue())}
-          disabled={!currentUser ? registerLoading : queueLoading}
+          onClick={() => void (!isRegistered ? registerOnly() : onQueue())}
+          disabled={!isRegistered ? registerLoading : queueLoading}
           className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
         >
-          {!currentUser ? (registerLoading ? 'Registering…' : 'Register') : (queueLoading ? 'Queueing…' : 'Queue Me')}
+          {!isRegistered ? (registerLoading ? 'Registering…' : 'Register') : (queueLoading ? 'Queueing…' : 'Queue Me')}
         </button>
       </div>
         <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
           Allowed: letters, digits, underscore, hyphen. Register first, then join queue.
         </p>
-        {currentUser && (
+        {currentUser && isRegistered && (
           <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Registered as <span className="font-medium">{currentUser}</span>.</p>
+        )}
+        {currentUser && !isRegistered && (
+          <p className="mt-1 text-xs text-red-700 dark:text-red-400">Session shows <span className="font-medium">{currentUser}</span>, but backend has no record. Please register.</p>
         )}
         {queueMessage && (
           <p className="mt-2 text-xs text-slate-700 dark:text-slate-200">{queueMessage}</p>
