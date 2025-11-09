@@ -24,6 +24,7 @@ export default function TicTacToe() {
   const [error, setError] = useState<string | null>(null)
 
   const updateGameState = (data: GameState) => {
+    console.log('Updating game state:', { turn: data.turn, winner: data.winner, won: data.won, board: data.totalBoard })
     setGameData(data)
     if (data.usernameToTacNumber) {
       const entries = Object.entries(data.usernameToTacNumber)
@@ -35,10 +36,14 @@ export default function TicTacToe() {
         }
       })
     }
-    if (data.turn !== undefined) setTurn(data.turn)
+    // Always update turn from gameData.turn
+    if (data.turn !== undefined) {
+      console.log('Setting turn to:', data.turn)
+      setTurn(data.turn)
+    }
     // winner is the integer (0, 1, or 2), won might be boolean from getWon()
     const winnerValue = data.winner ?? (typeof data.won === 'number' ? data.won : 0)
-    console.log('Game state update:', { winner: data.winner, won: data.won, winnerValue, fullData: data })
+    console.log('Game state update:', { winner: data.winner, won: data.won, winnerValue, turn: data.turn })
     setWinner(winnerValue)
     if (data.totalBoard && Array.isArray(data.totalBoard) && data.totalBoard.length >= 3) {
       const flatBoard: string[] = []
@@ -109,19 +114,31 @@ export default function TicTacToe() {
     if (!username || !gameData) return
     
     const myTacNumber = gameData.usernameToTacNumber?.[username] || 0
-    const isMyTurn = gameData.turn === myTacNumber
-    const gameEnded = (gameData.won ?? gameData.winner ?? 0) !== 0
+    const currentTurn = gameData.turn || 0
+    const isMyTurn = currentTurn === myTacNumber
+    const gameWinner = gameData.winner ?? (typeof gameData.won === 'number' ? gameData.won : 0)
+    const gameEnded = gameWinner !== 0
+    
+    console.log('Polling check:', { myTacNumber, currentTurn, isMyTurn, gameEnded, gameData })
     
     // Only poll when it's NOT the player's turn and game hasn't ended
-    if (isMyTurn || gameEnded) return
+    if (isMyTurn || gameEnded) {
+      console.log('Stopping polling - my turn or game ended')
+      return
+    }
     
+    console.log('Starting polling - waiting for opponent')
     // Fetch immediately, then poll every second
     fetchGameState()
     const interval = setInterval(() => {
+      console.log('Polling for game state update...')
       fetchGameState()
     }, 1000)
-    return () => clearInterval(interval)
-  }, [username, gameData?.turn, gameData?.won, gameData?.winner, gameData?.usernameToTacNumber])
+    return () => {
+      console.log('Clearing polling interval')
+      clearInterval(interval)
+    }
+  }, [username, gameData?.turn, gameData?.winner, gameData?.won, gameData?.usernameToTacNumber])
 
   const handleCellClick = async (cellIndex: number) => {
     if (!username || !gameData || isMakingMove) {
@@ -178,7 +195,11 @@ export default function TicTacToe() {
   }
 
   const myTacNumber = username && gameData && gameData.usernameToTacNumber ? gameData.usernameToTacNumber[username] || 0 : 0
-  const canMakeMove = !isMakingMove && turn === myTacNumber && winner === 0 && gameData !== null
+  const currentTurn = gameData?.turn || 0
+  const gameWinner = gameData?.winner ?? (typeof gameData?.won === 'number' ? gameData.won : 0)
+  const canMakeMove = !isMakingMove && currentTurn === myTacNumber && gameWinner === 0 && gameData !== null
+  
+  console.log('Render check:', { myTacNumber, currentTurn, canMakeMove, turn, gameDataTurn: gameData?.turn })
 
   if (!username) {
     return (
@@ -227,10 +248,10 @@ export default function TicTacToe() {
           </div>
 
           <div className="mt-4 text-center">
-            {winner === 0 ? (
-              <p>{turn === myTacNumber ? "Your turn!" : "Opponent's turn"}</p>
+            {gameWinner === 0 ? (
+              <p>{currentTurn === myTacNumber ? "Your turn!" : "Opponent's turn"}</p>
             ) : (
-              <p className="font-bold">{winner === myTacNumber ? "You won!" : "You lost!"}</p>
+              <p className="font-bold">{gameWinner === myTacNumber ? "You won!" : "You lost!"}</p>
             )}
           </div>
         </div>
