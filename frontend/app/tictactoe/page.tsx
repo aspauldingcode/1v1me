@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 
 type GameState = {
   type?: string
@@ -14,7 +14,6 @@ type GameState = {
 
 export default function TicTacToe() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [username, setUsername] = useState('')
   const [board, setBoard] = useState<string[]>(Array(9).fill(""))
   const [opponent, setOpponent] = useState("")
@@ -82,22 +81,19 @@ export default function TicTacToe() {
     }
   }
   
-  // Get username from URL params or localStorage on mount
+  // Get username from localStorage on mount (stored during registration)
   useEffect(() => {
-    const urlUsername = searchParams.get('username')
-    const storedUsername = typeof window !== 'undefined' ? localStorage.getItem('username') : null
-    const finalUsername = urlUsername || storedUsername || ''
-    if (finalUsername) {
-      setUsername(finalUsername)
-      // Store in localStorage for future use
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('username', finalUsername)
-      }
+    if (typeof window === 'undefined') return
+    
+    const storedUsername = localStorage.getItem('username')
+    
+    if (storedUsername) {
+      setUsername(storedUsername)
     } else {
       // No username found, redirect to homepage
       router.push('/')
     }
-  }, [searchParams, router])
+  }, [router])
 
   // Fetch game state immediately when username is available
   useEffect(() => {

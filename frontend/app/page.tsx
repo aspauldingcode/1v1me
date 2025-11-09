@@ -13,6 +13,16 @@ export default function Home() {
   const [message, setMessage] = useState('')
   const [polling, setPolling] = useState(false)
 
+  // Load username from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedUsername = localStorage.getItem('username')
+      if (storedUsername) {
+        setUsername(storedUsername)
+      }
+    }
+  }, [])
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -28,11 +38,8 @@ export default function Home() {
   const navigateToGame = (game: Game) => {
     const type = game?.type
     if (type === 'tictactoe') {
-      // Store username in localStorage and navigate
-      if (typeof window !== 'undefined' && username) {
-        localStorage.setItem('username', username)
-      }
-      router.push(`/tictactoe?username=${encodeURIComponent(username)}`)
+      // Username already stored in localStorage from registration
+      router.push('/tictactoe')
     } else if (type === 'rockpaperscissors' || type === 'rps') {
       router.push('/rock-paper-scissors')
     }
@@ -89,6 +96,10 @@ export default function Home() {
 
       if (action === 'register') {
         if (res.ok || res.status === 409) {
+          // Store username in localStorage on successful registration
+          if (typeof window !== 'undefined' && username) {
+            localStorage.setItem('username', username)
+          }
           setMessage(res.status === 409 ? 'Already registered. You can queue now.' : 'Registered!')
         } else {
           setMessage(`Registration failed (${res.status})`)
