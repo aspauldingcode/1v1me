@@ -27,6 +27,7 @@ export default function TicTacToe() {
 
   const updateGameState = (data: GameState) => {
     console.log('Updating game state:', { turn: data.turn, winner: data.winner, won: data.won, board: data.totalBoard })
+    // Always update gameData first to trigger re-renders
     setGameData(data)
     if (data.usernameToTacNumber) {
       const entries = Object.entries(data.usernameToTacNumber)
@@ -172,25 +173,45 @@ export default function TicTacToe() {
     console.log('Polling check:', { myTacNumber, currentTurn, isMyTurn, gameHasEnded, gameEndedState: gameEnded, gameData })
     
     // Continue polling even after game ends to ensure both players see the result
-    // Only stop polling if it's the player's turn and game hasn't ended
-    if (isMyTurn && !gameHasEnded) {
-      console.log('Stopping polling - my turn and game not ended')
-      return
-    }
+    // IMPORTANT: If game has ended, we MUST keep polling so both clients see the result
+    // This is especially important for the winner who just made the winning move
     
-    // If game ended and we've already set gameEnded state, poll a few more times then stop
+    // If game ended and we've already set gameEnded state, continue polling briefly to ensure both clients see the result
     if (gameHasEnded && gameEnded) {
-      // Already showing winner, just poll a couple more times to ensure sync, then stop
+      // Already showing winner, continue polling a few more times to ensure both clients sync, then stop
       let pollCount = 0
       const interval = setInterval(() => {
         pollCount++
-        if (pollCount >= 2) {
+        // Poll for 3 more seconds to ensure both clients have time to see the countdown
+        if (pollCount >= 3) {
           clearInterval(interval)
           return
         }
         fetchGameState()
       }, 1000)
       return () => clearInterval(interval)
+    }
+    
+    // If game has ended but we haven't set gameEnded state yet, keep polling to get the update
+    // This handles the case where the winner just made a move and the game ended
+    // We MUST continue polling here to ensure the winner sees their win screen
+    if (gameHasEnded && !gameEnded) {
+      console.log('Game ended detected during polling, continuing to poll to get final state')
+      // Continue polling to get the final state - don't return early
+      fetchGameState()
+      const interval = setInterval(() => {
+        console.log('Polling for final game state with winner...')
+        fetchGameState()
+        // Stop after a few polls once we've gotten the state
+        setTimeout(() => clearInterval(interval), 3000)
+      }, 500) // Poll more frequently to catch the update
+      return () => clearInterval(interval)
+    }
+    
+    // Only stop polling if it's the player's turn and game hasn't ended
+    if (isMyTurn && !gameHasEnded) {
+      console.log('Stopping polling - my turn and game not ended')
+      return
     }
     
     console.log('Starting polling - waiting for opponent or checking game end')
@@ -258,13 +279,16 @@ export default function TicTacToe() {
       } else {
         console.log('Move successful, fetching game state')
         // Small delay to ensure backend has processed the move
-        await new Promise(resolve => setTimeout(resolve, 100))
-        // Fetch updated game state after making move
+        await new Promise(resolve => setTimeout(resolve, 150))
+        // Fetch updated game state after making move - this will update board and winner
         await fetchGameState()
         // Fetch again after a short delay to ensure we get the final state with winner
-        setTimeout(async () => {
-          await fetchGameState()
-        }, 200)
+        // This is important because the backend might need a moment to process win detection
+        await new Promise(resolve => setTimeout(resolve, 200))
+        await fetchGameState()
+        // One more fetch to be absolutely sure we have the final state
+        await new Promise(resolve => setTimeout(resolve, 200))
+        await fetchGameState()
       }
     } catch (err) {
       console.error('Error making move:', err)
