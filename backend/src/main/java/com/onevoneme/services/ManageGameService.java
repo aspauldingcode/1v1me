@@ -38,8 +38,8 @@ public class ManageGameService {
             return null;
         }
 
-        String otherUser = usersInQueue.getFirst();
-        usersInQueue.removeFirst();
+        String otherUser = usersInQueue.get(0);
+        usersInQueue.remove(0);
 
         Game newGame = new UltimateTTT(otherUser, username);
         ActiveGame game = new ActiveGame(newGame, users.get(username), users.get(otherUser));
@@ -73,5 +73,10 @@ public class ManageGameService {
 
     public void registerUser(String username) {
         users.put(username, new GameUser(username));
+    }
+
+    // Explicit accessor to avoid reliance on Lombok-generated getter
+    public HashMap<String, GameUser> getUsers() {
+        return users;
     }
 }

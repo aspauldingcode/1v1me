@@ -4,6 +4,7 @@ import com.onevoneme.model.GameUser;
 import com.onevoneme.model.game.Game;
 import com.onevoneme.model.move.TTTMove;
 import com.onevoneme.services.ManageGameService;
+import com.onevoneme.services.UsernamePolicyService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +15,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class BackendController {
-    ManageGameService gameService;
-    public BackendController(ManageGameService gameService) {
+    private final ManageGameService gameService;
+    private final UsernamePolicyService usernamePolicyService;
+
+    public BackendController(ManageGameService gameService, UsernamePolicyService usernamePolicyService) {
         this.gameService = gameService;
+        this.usernamePolicyService = usernamePolicyService;
     }
 
     @GetMapping("/health")
@@ -29,6 +33,10 @@ public class BackendController {
 
     @PostMapping("/register/{username}")
     public ResponseEntity<String> registerUser(@PathVariable String username) {
+        String policyError = usernamePolicyService.validateUsername(username);
+        if (policyError != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(policyError);
+        }
         if(gameService.isUserCreated(username)) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }else {

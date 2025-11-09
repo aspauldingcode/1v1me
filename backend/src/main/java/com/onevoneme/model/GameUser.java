@@ -18,4 +18,11 @@ public class GameUser {
         gamesWon = 0;
         gamesPlayed = 0;
     }
+
+    // Explicit getters/setters to avoid reliance on Lombok processing
+    public String getName() { return name; }
+    public int getGamesWon() { return gamesWon; }
+    public void setGamesWon(int gamesWon) { this.gamesWon = gamesWon; }
+    public int getGamesPlayed() { return gamesPlayed; }
+    public void setGamesPlayed(int gamesPlayed) { this.gamesPlayed = gamesPlayed; }
 }

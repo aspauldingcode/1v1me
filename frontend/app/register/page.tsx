@@ -53,6 +53,12 @@ export default function RegisterPage() {
             setCurrentUser(sanitized)
           } catch {}
           setResult({ ok: false, code: res.status, message: 'Username taken. You may queue with this name.' })
+        } else if (res.status === 400) {
+          let msg = 'Username not allowed by policy.'
+          try {
+            msg = await res.text() || msg
+          } catch {}
+          setResult({ ok: false, code: res.status, message: msg })
         } else {
           setResult({ ok: false, code: res.status, message: `Registration failed (${res.status}).` })
         }

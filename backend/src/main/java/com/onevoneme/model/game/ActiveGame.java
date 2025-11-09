@@ -12,4 +12,13 @@ public class ActiveGame {
         this.game = game;
         users = new GameUser[] {user1, user2};
     }
+
+    // Explicit getters to avoid reliance on Lombok annotation processing in build environments
+    public GameUser[] getUsers() {
+        return users;
+    }
+
+    public Game getGame() {
+        return game;
+    }
 }

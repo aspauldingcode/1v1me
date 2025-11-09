@@ -111,6 +111,12 @@ function QueueContent() {
         } catch {}
         setCurrentUser(sanitized)
         setQueueMessage(`Username taken. You may queue with this name. (status ${res.status})`)
+      } else if (res.status === 400) {
+        let msg = 'Username not allowed by policy.'
+        try {
+          msg = await res.text() || msg
+        } catch {}
+        setQueueMessage(`${msg} (status ${res.status})`)
       } else {
         setQueueMessage(`Could not register username. Try again.${res.status ? ` (status ${res.status})` : ''}`)
       }

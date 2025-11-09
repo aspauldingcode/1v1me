@@ -1,0 +1,20 @@
+# Reserved and misleading names (exact match, case-insensitive)
+admin
+administrator
+owner
+moderator
+moderation
+support
+help
+staff
+system
+root
+null
+undefined
+server
+official
+developer
+dev
+test
+tester
+qa

@@ -1,0 +1,10 @@
+# Regex patterns to catch obfuscations and undesirable patterns (case-insensitive)
+# 1) Entire string is a single repeated character (e.g., "aaaaaa")
+(?i)^(.)\1{3,}$
+# 2) Common separator-obfuscated profanity (e.g., f.u.c.k, f_u_c_k, f-u-c-k)
+(?i).*f\W*u\W*c\W*k.*
+(?i).*s\W*h\W*i\W*t.*
+(?i).*b\W*i\W*t\W*c\W*h.*
+(?i).*c\W*u\W*n\W*t.*
+(?i).*d\W*i\W*c\W*k.*
+(?i).*p\W*u\W*s\W*s\W*y.*
