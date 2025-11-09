@@ -75,34 +75,20 @@ jobs:
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
 
-      - name: Update Vercel BACKEND_URL and NEXT_PUBLIC_BACKEND_URL (Production)
+      - name: Update Vercel NEXT_PUBLIC_BACKEND_URL (Production)
         working-directory: frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
+          NEXT_PUBLIC_BACKEND_URL: ${{ steps.deploy.outputs.service_url }}/api
         run: |
           # Ensure local directory is linked to the Vercel project non-interactively
           mkdir -p .vercel
           echo "{\"orgId\":\"$VERCEL_ORG_ID\",\"projectId\":\"$VERCEL_PROJECT_ID\"}" > .vercel/project.json
-          # Diagnostics to ensure CLI, auth, and linkage are correct
-          vercel --version || true
-          vercel whoami --token "$VERCEL_TOKEN" || true
-          echo "Linked .vercel contents:" && ls -la .vercel || true
-          echo "Linked project.json:" && cat .vercel/project.json || true
-          echo "VERCEL_ORG_ID present? $([[ -n \"$VERCEL_ORG_ID\" ]] && echo yes || echo no)"
-          echo "VERCEL_PROJECT_ID present? $([[ -n \"$VERCEL_PROJECT_ID\" ]] && echo yes || echo no)"
-          echo "Env (production) before changes:" && vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
-          # Remove if present, then add envs with explicit team scope and debug
-          if vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" | grep -q "BACKEND_URL"; then
-            vercel env rm BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --debug
-          fi
-          echo "$BACKEND_URL" | vercel env add BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
-          if vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" | grep -q "NEXT_PUBLIC_BACKEND_URL"; then
-            vercel env rm NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --debug
-          fi
-          echo "$BACKEND_URL" | vercel env add NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
-          echo "Env (production) after changes:" && vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
+          # Update value; if it doesn't exist, add it (simple fallback)
+          echo "$NEXT_PUBLIC_BACKEND_URL" | vercel env update NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug \
+            || echo "$NEXT_PUBLIC_BACKEND_URL" | vercel env add NEXT_PUBLIC_BACKEND_URL production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --debug
+          vercel env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || true
 
       # Removed explicit Vercel deploy; rely on GitHub integration auto-deploys

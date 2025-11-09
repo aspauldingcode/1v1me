@@ -10,7 +10,7 @@ export default function RegisterGate({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     try {
-      const current = typeof window !== 'undefined' ? localStorage.getItem('onevoneme.currentUser') : null
+      const current = typeof window !== 'undefined' ? sessionStorage.getItem('onevoneme.currentUser') : null
       setOpen(!current)
     } catch {
       setOpen(true)
@@ -36,17 +36,19 @@ export default function RegisterGate({ children }: { children: React.ReactNode }
       const res = await fetch(`/api/register/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })
       if (res.ok) {
         try {
-          const key = 'onevoneme.users'
-          const val = localStorage.getItem(key)
-          const map = val ? JSON.parse(val) : {}
-          map[sanitized] = { registeredAt: new Date().toISOString() }
-          localStorage.setItem(key, JSON.stringify(map))
-          localStorage.setItem('onevoneme.currentUser', sanitized)
+          sessionStorage.setItem('onevoneme.currentUser', sanitized)
         } catch {}
         setMessage(`Registered '${sanitized}' successfully. You may play now.`)
         setTimeout(() => setOpen(false), 600)
+      } else if (res.status === 409) {
+        // Username already exists: treat as success and proceed
+        try {
+          sessionStorage.setItem('onevoneme.currentUser', sanitized)
+        } catch {}
+        setMessage(`Username '${sanitized}' already exists. Continuing…`)
+        setTimeout(() => setOpen(false), 600)
       } else {
-        setMessage(res.status === 400 ? 'Username taken.' : `Registration failed (${res.status}).`)
+        setMessage(`Registration failed (${res.status}).`)
       }
     } catch {
       setMessage('Network error while registering.')
@@ -62,7 +64,7 @@ export default function RegisterGate({ children }: { children: React.ReactNode }
       {open && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-[92%] max-w-md rounded-xl border border-black/10 bg-white p-5 shadow-xl dark:border-white/10 dark:bg-slate-900">
-            <h2 className="text-base font-semibold">Registration Required</h2>
+            <h2 className="text-base font-semibold">Register Username</h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Please register a username to play. You can still open the ℹ️ status tray.
             </p>

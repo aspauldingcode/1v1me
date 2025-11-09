@@ -1,6 +1,7 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import validator from 'validator'
 
 function sanitizeUsername(raw: string) {
@@ -10,29 +11,20 @@ function sanitizeUsername(raw: string) {
 }
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<null | { ok: boolean; code?: number; message: string }>(null)
-  const [localUsers, setLocalUsers] = useState<string[]>([])
-
-  function refreshLocalUsers() {
-    try {
-      const key = 'onevoneme.users'
-      const val = localStorage.getItem(key)
-      if (!val) {
-        setLocalUsers([])
-        return
-      }
-      const obj = JSON.parse(val)
-      const names = typeof obj === 'object' && obj ? Object.keys(obj) : []
-      setLocalUsers(names)
-    } catch {
-      setLocalUsers([])
-    }
-  }
+  const [currentUser, setCurrentUser] = useState<string | null>(null)
+  const [queueLoading, setQueueLoading] = useState(false)
+  const [queueMessage, setQueueMessage] = useState<string | null>(null)
+  const pollId = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    refreshLocalUsers()
+    try {
+      const cur = typeof window !== 'undefined' ? sessionStorage.getItem('onevoneme.currentUser') : null
+      if (cur) setCurrentUser(cur)
+    } catch {}
   }, [])
 
   async function register() {
@@ -48,24 +40,85 @@ export default function RegisterPage() {
       setLoading(true)
       const res = await fetch(`/api/register/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })
       if (res.ok) {
-        // Save to local storage map
-        const key = 'onevoneme.users'
         try {
-          const val = localStorage.getItem(key)
-          const map = val ? JSON.parse(val) : {}
-          map[sanitized] = { registeredAt: new Date().toISOString() }
-          localStorage.setItem(key, JSON.stringify(map))
+          sessionStorage.setItem('onevoneme.currentUser', sanitized)
+          setCurrentUser(sanitized)
         } catch {}
         setResult({ ok: true, code: res.status, message: `Registered '${sanitized}' successfully.` })
         setUsername('')
-        refreshLocalUsers()
       } else {
-        setResult({ ok: false, code: res.status, message: res.status === 400 ? 'Username taken.' : `Registration failed (${res.status}).` })
+        if (res.status === 409) {
+          try {
+            sessionStorage.setItem('onevoneme.currentUser', sanitized)
+            setCurrentUser(sanitized)
+          } catch {}
+          setResult({ ok: false, code: res.status, message: 'Username taken. You may queue with this name.' })
+        } else {
+          setResult({ ok: false, code: res.status, message: `Registration failed (${res.status}).` })
+        }
       }
     } catch {
       setResult({ ok: false, message: 'Network error while registering.' })
     } finally {
       setLoading(false)
+    }
+  }
+
+  function navigateForGame(game: { type?: string; [key: string]: any } | null) {
+    const type = game && typeof game === 'object' ? game.type : undefined
+    if (!type) return
+    if (type === 'tictactoe') {
+      router.push('/tictactoe')
+    } else if (type === 'rockpaperscissors' || type === 'rps') {
+      router.push('/rock-paper-scissors')
+    }
+  }
+
+  async function pollGameState(name: string) {
+    try {
+      const res = await fetch(`/api/gamestate/${encodeURIComponent(name)}`, { cache: 'no-store' })
+      if (res.ok) {
+        const data = (await res.json()) as { type?: string } | null
+        if (data) {
+          if (pollId.current) {
+            clearInterval(pollId.current)
+            pollId.current = null
+          }
+          navigateForGame(data)
+        }
+      }
+    } catch {}
+  }
+
+  async function onQueue() {
+    setQueueMessage(null)
+    const name = currentUser || ''
+    const sanitized = sanitizeUsername(name)
+    const isLengthOk = validator.isLength(sanitized, { min: 3, max: 32 })
+    const isCharsOk = validator.matches(sanitized, /^[A-Za-z0-9_-]+$/)
+    if (!sanitized || !isLengthOk || !isCharsOk) {
+      setQueueMessage('Enter a valid username (3–32 letters/digits/_/-).')
+      return
+    }
+    setQueueLoading(true)
+    try {
+      const res = await fetch(`/api/queue/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })
+      if (!res.ok) {
+        setQueueMessage(`Queue failed (status ${res.status}).`)
+        return
+      }
+      const data = (await res.json()) as { type?: string } | null
+      if (data) {
+        navigateForGame(data)
+        return
+      }
+      setQueueMessage('Queued. Waiting for opponent…')
+      if (pollId.current) clearInterval(pollId.current)
+      pollId.current = setInterval(() => void pollGameState(sanitized), 2000)
+    } catch {
+      setQueueMessage('Network error while queueing.')
+    } finally {
+      setQueueLoading(false)
     }
   }
 
@@ -101,18 +154,25 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <div className="mt-6">
-        <h2 className="text-sm font-semibold">Local Users</h2>
-        {localUsers.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">No users stored locally yet.</p>
-        ) : (
-          <ul className="mt-2 list-disc pl-5 text-sm">
-            {localUsers.map((u) => (
-              <li key={u}>{u}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {currentUser && (
+        <div className="mt-6 rounded-md border border-black/10 bg-white/70 p-4 dark:border-white/10 dark:bg-white/10">
+          <div className="flex items-center justify-between">
+            <p className="text-sm">Current user: <span className="font-medium">{currentUser}</span></p>
+            <button
+              onClick={() => void onQueue()}
+              disabled={queueLoading}
+              className="rounded-md bg-slate-900 px-3 py-1.5 text-xs text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
+            >
+              {queueLoading ? 'Queueing…' : 'Queue Me'}
+            </button>
+          </div>
+          {queueMessage && (
+            <p className="mt-2 text-xs text-slate-700 dark:text-slate-200">{queueMessage}</p>
+          )}
+        </div>
+      )}
+
+      {/* Single-user session: no multi-user local listing */}
     </div>
   )
 }
