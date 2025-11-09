@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import RegisterGate from "@/components/RegisterGate";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Move = "ROCK" | "PAPER" | "SCISSORS";
@@ -184,6 +185,7 @@ export default function RockPaperScissorsPage() {
   }
 
   return (
+    <RegisterGate>
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold">Rock · Paper · Scissors</h1>
 
@@ -278,5 +280,6 @@ export default function RockPaperScissorsPage() {
         </div>
       )}
     </div>
+    </RegisterGate>
   );
 }
