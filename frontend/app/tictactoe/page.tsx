@@ -23,7 +23,7 @@ export default function TicTacToe() {
   const [isMakingMove, setIsMakingMove] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [gameEnded, setGameEnded] = useState(false)
-  const [redirectCountdown, setRedirectCountdown] = useState(5)
+  const [redirectCountdown, setRedirectCountdown] = useState(10)
 
   const updateGameState = (data: GameState) => {
     console.log('Updating game state:', { turn: data.turn, winner: data.winner, won: data.won, board: data.totalBoard })
@@ -51,8 +51,9 @@ export default function TicTacToe() {
     // Check if game has ended (winner is not 0, including -1 for cat's game)
     if (winnerValue !== 0 && !gameEnded) {
       setGameEnded(true)
-      setRedirectCountdown(5)
+      setRedirectCountdown(10)
     }
+    // Always update board state from backend, even if game ended
     if (data.totalBoard && Array.isArray(data.totalBoard) && data.totalBoard.length >= 3) {
       const flatBoard: string[] = []
       for (let row = 0; row < 3; row++) {
@@ -64,6 +65,7 @@ export default function TicTacToe() {
           }
         }
       }
+      console.log('Updating board state:', flatBoard)
       setBoard(flatBoard)
     }
   }
@@ -142,7 +144,7 @@ export default function TicTacToe() {
   useEffect(() => {
     if (!gameEnded) return
     
-    setRedirectCountdown(5)
+    setRedirectCountdown(10)
     const countdownInterval = setInterval(() => {
       setRedirectCountdown((prev) => {
         if (prev <= 1) {
@@ -229,6 +231,12 @@ export default function TicTacToe() {
     const row = Math.floor(cellIndex / 3)
     const col = cellIndex % 3
 
+    // Optimistically update the board immediately
+    const newBoard = [...board]
+    newBoard[cellIndex] = myTacNumber === 1 ? "X" : "O"
+    setBoard(newBoard)
+    console.log('Optimistically updated board:', newBoard)
+
     setIsMakingMove(true)
     setError(null)
 
@@ -245,10 +253,18 @@ export default function TicTacToe() {
         const text = await res.text()
         console.error('Move failed:', text || res.status)
         setError(`Move failed: ${text || res.status}`)
+        // Revert optimistic update on failure
+        setBoard(board)
       } else {
         console.log('Move successful, fetching game state')
+        // Small delay to ensure backend has processed the move
+        await new Promise(resolve => setTimeout(resolve, 100))
         // Fetch updated game state after making move
         await fetchGameState()
+        // Fetch again after a short delay to ensure we get the final state with winner
+        setTimeout(async () => {
+          await fetchGameState()
+        }, 200)
       }
     } catch (err) {
       console.error('Error making move:', err)
