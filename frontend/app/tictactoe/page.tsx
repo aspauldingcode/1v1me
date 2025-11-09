@@ -122,12 +122,24 @@ export default function TicTacToe() {
   }, [username, gameData?.turn, gameData?.won, gameData?.winner, gameData?.usernameToTacNumber])
 
   const handleCellClick = async (cellIndex: number) => {
-    if (!username || !gameData || isMakingMove) return
-    if (board[cellIndex] !== "") return
+    if (!username || !gameData || isMakingMove) {
+      console.log('Early return:', { username: !!username, gameData: !!gameData, isMakingMove })
+      return
+    }
+    if (board[cellIndex] !== "") {
+      console.log('Cell already occupied:', cellIndex)
+      return
+    }
     
     const myTacNumber = gameData.usernameToTacNumber?.[username] || 0
-    if (gameData.turn !== myTacNumber) return
-    if ((gameData.won ?? gameData.winner ?? 0) !== 0) return
+    if (gameData.turn !== myTacNumber) {
+      console.log('Not your turn:', { turn: gameData.turn, myTacNumber })
+      return
+    }
+    if ((gameData.won ?? gameData.winner ?? 0) !== 0) {
+      console.log('Game already ended')
+      return
+    }
 
     const row = Math.floor(cellIndex / 3)
     const col = cellIndex % 3
@@ -136,6 +148,7 @@ export default function TicTacToe() {
     setError(null)
 
     try {
+      console.log('Making move:', { username, location: [row, col] })
       const res = await fetch(`/api/make_move/tictactoe/${encodeURIComponent(username)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -145,12 +158,15 @@ export default function TicTacToe() {
 
       if (!res.ok) {
         const text = await res.text()
+        console.error('Move failed:', text || res.status)
         setError(`Move failed: ${text || res.status}`)
       } else {
+        console.log('Move successful, fetching game state')
         // Fetch updated game state after making move
         await fetchGameState()
       }
     } catch (err) {
+      console.error('Error making move:', err)
       setError(`Error making move: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {
       setIsMakingMove(false)

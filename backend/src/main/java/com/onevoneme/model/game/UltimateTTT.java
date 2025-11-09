@@ -54,8 +54,8 @@ public class UltimateTTT implements Game {
         if(usernameToTacNumber.get(tictacMove.getUsername()) != turn) return false;
 
         int[] moveLocation = tictacMove.getLocation();
-        // move already made
-        if(totalBoard[moveLocation[0]][moveLocation[1]] == 0) return false;
+        // move already made (cell is not empty - 0 means empty, 1 or 2 means occupied)
+        if(totalBoard[moveLocation[0]][moveLocation[1]] != 0) return false;
         // move is outside the current board
         //if(Math.abs(moveLocation[0] - curBoard[0]) >= 3 || Math.abs(moveLocation[1] - curBoard[1]) >= 3) return false;
 
