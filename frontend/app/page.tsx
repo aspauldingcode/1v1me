@@ -34,13 +34,6 @@ function QueueContent() {
       if (isReload) {
         try {
           sessionStorage.removeItem('onevoneme.currentUser')
-          // Best-effort cookie clearing for same-origin cookies
-          if (typeof document !== 'undefined') {
-            document.cookie.split(';').forEach((c) => {
-              const name = c.split('=')[0]?.trim()
-              if (name) document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`
-            })
-          }
         } catch {}
       }
       const current = typeof window !== 'undefined' ? sessionStorage.getItem('onevoneme.currentUser') : null
