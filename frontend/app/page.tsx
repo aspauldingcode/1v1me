@@ -27,8 +27,15 @@ export default function Home() {
 
   const navigateToGame = (game: Game) => {
     const type = game?.type
-    if (type === 'tictactoe') router.push('/tictactoe')
-    else if (type === 'rockpaperscissors' || type === 'rps') router.push('/rock-paper-scissors')
+    if (type === 'tictactoe') {
+      // Store username in localStorage and navigate
+      if (typeof window !== 'undefined' && username) {
+        localStorage.setItem('username', username)
+      }
+      router.push(`/tictactoe?username=${encodeURIComponent(username)}`)
+    } else if (type === 'rockpaperscissors' || type === 'rps') {
+      router.push('/rock-paper-scissors')
+    }
   }
 
   useEffect(() => {

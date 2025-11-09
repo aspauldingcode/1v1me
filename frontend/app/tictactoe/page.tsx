@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 type GameState = {
   type?: string
@@ -14,24 +14,27 @@ type GameState = {
 
 export default function TicTacToe() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [username, setUsername] = useState('')
   const [board, setBoard] = useState<string[]>(Array(9).fill(""))
-  const [player, setPlayer] = useState("")
   const [opponent, setOpponent] = useState("")
   const [turn, setTurn] = useState(0)
   const [winner, setWinner] = useState(0)
   const [gameData, setGameData] = useState<GameState | null>(null)
-  const [isQueued, setIsQueued] = useState(false)
   const [isMakingMove, setIsMakingMove] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const queueIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const updateGameState = (data: GameState) => {
     setGameData(data)
     if (data.usernameToTacNumber) {
       const entries = Object.entries(data.usernameToTacNumber)
-      setPlayer(entries.find(([, num]) => num === 1)?.[0] || "")
-      setOpponent(entries.find(([, num]) => num === 2)?.[0] || "")
+      // Find opponent from usernameToTacNumber (current player is username)
+      const myTacNumber = data.usernameToTacNumber[username] || 0
+      entries.forEach(([name, num]) => {
+        if (num !== myTacNumber && num !== 0) {
+          setOpponent(name)
+        }
+      })
     }
     if (data.turn !== undefined) setTurn(data.turn)
     const winnerValue = data.winner ?? data.won ?? 0
@@ -79,54 +82,33 @@ export default function TicTacToe() {
     }
   }
   
-  // Fetch game state when component mounts with username
+  // Get username from URL params or localStorage on mount
   useEffect(() => {
-    if (username && !isQueued) {
+    const urlUsername = searchParams.get('username')
+    const storedUsername = typeof window !== 'undefined' ? localStorage.getItem('username') : null
+    const finalUsername = urlUsername || storedUsername || ''
+    if (finalUsername) {
+      setUsername(finalUsername)
+      // Store in localStorage for future use
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('username', finalUsername)
+      }
+    } else {
+      // No username found, redirect to homepage
+      router.push('/')
+    }
+  }, [searchParams, router])
+
+  // Fetch game state immediately when username is available
+  useEffect(() => {
+    if (username) {
       fetchGameState()
     }
   }, [username])
 
-  const queueUp = async () => {
-    if (!username) {
-      setError("Please enter a username first")
-      return
-    }
-    setIsQueued(true)
-    setError(null)
-    setGameData(null)
-
-    if (queueIntervalRef.current) clearInterval(queueIntervalRef.current)
-
-    queueIntervalRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/queue/${encodeURIComponent(username)}`, {
-          method: 'POST',
-          cache: 'no-store'
-        })
-        if (res.ok) {
-          const text = await res.text()
-          if (text && text !== "null" && text.trim() !== "") {
-            try {
-              const gameData: GameState = JSON.parse(text)
-              if (gameData && gameData.type) {
-                setIsQueued(false)
-                if (queueIntervalRef.current) {
-                  clearInterval(queueIntervalRef.current)
-                  queueIntervalRef.current = null
-                }
-                // Fetch game state immediately when game starts
-                await fetchGameState()
-              }
-            } catch {}
-          }
-        }
-      } catch {}
-    }, 1000)
-  }
-
   // Poll game state continuously when it's not the player's turn
   useEffect(() => {
-    if (!username || !gameData || isQueued) return
+    if (!username || !gameData) return
     
     const myTacNumber = gameData.usernameToTacNumber?.[username] || 0
     const isMyTurn = gameData.turn === myTacNumber
@@ -141,11 +123,7 @@ export default function TicTacToe() {
       fetchGameState()
     }, 1000)
     return () => clearInterval(interval)
-  }, [username, isQueued, gameData?.turn, gameData?.won, gameData?.winner, gameData?.usernameToTacNumber])
-
-  useEffect(() => () => {
-    if (queueIntervalRef.current) clearInterval(queueIntervalRef.current)
-  }, [])
+  }, [username, gameData?.turn, gameData?.won, gameData?.winner, gameData?.usernameToTacNumber])
 
   const handleCellClick = async (cellIndex: number) => {
     if (!username || !gameData || isMakingMove) return
@@ -186,34 +164,23 @@ export default function TicTacToe() {
   const myTacNumber = username && gameData && gameData.usernameToTacNumber ? gameData.usernameToTacNumber[username] || 0 : 0
   const canMakeMove = !isMakingMove && turn === myTacNumber && winner === 0 && gameData !== null
 
+  if (!username) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black p-6">
+        <p>Loading...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black p-6">
       <h1 className="text-4xl font-bold mb-4">Tic - Tac - Toe</h1>
 
-      {!username && (
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Enter username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.trim())}
-            className="px-3 py-2 border rounded-lg mr-2"
-            onKeyDown={(e) => e.key === 'Enter' && username && queueUp()}
-          />
-        </div>
-      )}
-
-      {!gameData && !isQueued && username && (
-        <button
-          onClick={queueUp}
-          className="mb-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          Enter Queue
-        </button>
-      )}
-
-      {isQueued && <p className="mb-4 text-lg">Waiting for opponent...</p>}
       {error && <p className="mb-4 text-red-600">{error}</p>}
+      
+      {!gameData && (
+        <p className="mb-4 text-lg">Loading game...</p>
+      )}
 
       {gameData && (
         <div className="rounded-2xl border-4 border-black p-8 w-[400px] flex flex-col items-center justify-between">
@@ -235,11 +202,11 @@ export default function TicTacToe() {
           <div className="flex justify-between w-full mt-6">
             <div className="text-left">
               <p className="font-semibold underline">You ({myTacNumber === 1 ? "X" : "O"})</p>
-              <p>{player}</p>
+              <p>{username}</p>
             </div>
             <div className="text-right">
               <p className="font-semibold underline">Opponent ({myTacNumber === 1 ? "O" : "X"})</p>
-              <p>{opponent}</p>
+              <p>{opponent || "Waiting..."}</p>
             </div>
           </div>
 
@@ -251,10 +218,6 @@ export default function TicTacToe() {
             )}
           </div>
         </div>
-      )}
-
-      {!gameData && !isQueued && username && (
-        <p className="mt-4 text-gray-600">Enter the queue to start a game</p>
       )}
     </div>
   )
