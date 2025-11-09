@@ -23,10 +23,23 @@ public class ManageGameService {
     private final ArrayList<ActiveGame> activeGames = new ArrayList<>();
 
     public Game queueUp(String username) {
+        // Require registration; avoid creating games with null users
+        if (!isUserCreated(username)) {
+            return null;
+        }
+
+        // Clean queue front if it contains unregistered users (legacy entries)
+        while (!usersInQueue.isEmpty() && !isUserCreated(usersInQueue.get(0))) {
+            usersInQueue.remove(0);
+        }
+
         // search active games and make sure that the user isn't already in one
-        for(ActiveGame g : activeGames) {
-            if(g.getUsers()[0].getName().equals(username) ||
-                    g.getUsers()[1].getName().equals(username)) return null;
+        for (ActiveGame g : activeGames) {
+            GameUser u0 = (g.getUsers().length > 0) ? g.getUsers()[0] : null;
+            GameUser u1 = (g.getUsers().length > 1) ? g.getUsers()[1] : null;
+            String n0 = (u0 != null) ? u0.getName() : null;
+            String n1 = (u1 != null) ? u1.getName() : null;
+            if (username.equals(n0) || username.equals(n1)) return null;
         }
 
         // user is already waiting in queue
@@ -40,6 +53,12 @@ public class ManageGameService {
 
         String otherUser = usersInQueue.get(0);
         usersInQueue.remove(0);
+
+        // Ensure the other user is registered; if not, re-queue current user and wait
+        if (!isUserCreated(otherUser)) {
+            usersInQueue.add(username);
+            return null;
+        }
 
         Game newGame = new UltimateTTT(otherUser, username);
         ActiveGame game = new ActiveGame(newGame, users.get(username), users.get(otherUser));

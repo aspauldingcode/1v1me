@@ -27,6 +27,21 @@ function QueueContent() {
 
   useEffect(() => {
     try {
+      // On full page reload, clear session to allow re-registration
+      const navEntries = typeof performance !== 'undefined' ? performance.getEntriesByType('navigation') : []
+      const isReload = Array.isArray(navEntries) && navEntries[0] && (navEntries[0] as PerformanceNavigationTiming).type === 'reload'
+      if (isReload) {
+        try {
+          sessionStorage.removeItem('onevoneme.currentUser')
+          // Best-effort cookie clearing for same-origin cookies
+          if (typeof document !== 'undefined') {
+            document.cookie.split(';').forEach((c) => {
+              const name = c.split('=')[0]?.trim()
+              if (name) document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`
+            })
+          }
+        } catch {}
+      }
       const current = typeof window !== 'undefined' ? sessionStorage.getItem('onevoneme.currentUser') : null
       if (current) {
         setUsername(current)

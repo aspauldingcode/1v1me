@@ -46,8 +46,12 @@ public class BackendController {
     }
 
     @PostMapping("/queue/{username}")
-    public Game queueUp(@PathVariable String username) {
-        return gameService.queueUp(username);
+    public ResponseEntity<?> queueUp(@PathVariable String username) {
+        if (!gameService.isUserCreated(username)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please register before queueing.");
+        }
+        Game game = gameService.queueUp(username);
+        return ResponseEntity.ok(game);
     }
 
     @PostMapping("/make_move/tictactoe/{username}")
