@@ -2,33 +2,59 @@
 
 import { useEffect, useState } from "react";
 
-const API_URL: string = ""
-const PLAYER_NAME: string = localStorage.getItem("userName") ?? ""
+interface GameState {
+  type: string;
+  winner: number;
+  usernameToTacNumber: Record<string, number>;
+  turn: number;
+}
 
 export default function TicTacToe() {
   const [board, setBoard] = useState<string[]>(Array(9).fill(""));
-  const [player, setPlayer] = useState("you");
-  const [opponent, setOpponent] = useState("opponent");
+  const [player, setPlayer] = useState("");
+  const [opponent, setOpponent] = useState("");
+  const [turn, setTurn] = useState(0);
+  const [winner, setWinner] = useState(0);
+  const [gameData, setGameData] = useState<GameState | null>(null);
 
-  // Fetch game state periodically
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const username =
+    typeof window !== "undefined" ? localStorage.getItem("username") : null;
+
   useEffect(() => {
+    if (!username) return;
+
     const fetchGameState = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/gameState/${PLAYER_NAME}`); // your API endpoint
-        const data = await res.json();
-        // Expecting something like { board: ["X", "", "O", ...], you: "Mekai", opponent: "Alex" }
-        setBoard(data.board);
-        setPlayer(data.you);
-        setOpponent(data.opponent);
+        const res = await fetch(`${API_URL}/api/gameState/${username}`);
+        const data: GameState = await res.json();
+        setGameData(data);
+
+        const entries = Object.entries(data.usernameToTacNumber);
+        const currentPlayer = entries.find(([, num]) => num === 1)?.[0] || "";
+        const opponentPlayer = entries.find(([, num]) => num === 2)?.[0] || "";
+
+        setPlayer(currentPlayer);
+        setOpponent(opponentPlayer);
+        setTurn(data.turn);
+        setWinner(data.winner);
+
+        // Optional: if your API includes board state
+        // setBoard(data.board);
       } catch (err) {
         console.error("Error fetching game:", err);
       }
     };
 
     fetchGameState();
-    const interval = setInterval(fetchGameState, 1000); // refresh every second
+    const interval = setInterval(fetchGameState, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [API_URL, username]);
+
+  const myTacNumber =
+    username && gameData
+      ? gameData.usernameToTacNumber[username] || 0
+      : 0;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black">
@@ -50,14 +76,30 @@ export default function TicTacToe() {
         {/* Player info */}
         <div className="flex justify-between w-full mt-6">
           <div className="text-left">
-            <p className="font-semibold underline">You (X)</p>
+            <p className="font-semibold underline">
+              You ({myTacNumber === 1 ? "X" : "O"})
+            </p>
             <p>{player}</p>
           </div>
-
           <div className="text-right">
-            <p className="font-semibold underline">Opponent (O)</p>
+            <p className="font-semibold underline">
+              Opponent ({myTacNumber === 1 ? "O" : "X"})
+            </p>
             <p>{opponent}</p>
           </div>
+        </div>
+
+        {/* Game status */}
+        <div className="mt-4 text-center">
+          {winner === 0 ? (
+            <p>
+              {turn === myTacNumber ? "Your turn!" : "Opponent’s turn"}
+            </p>
+          ) : (
+            <p className="font-bold">
+              {winner === myTacNumber ? "You won!" : "You lost!"}
+            </p>
+          )}
         </div>
       </div>
     </div>
