@@ -94,10 +94,69 @@ public class ManageGameService {
 
     public Game getGameState(String username) {
         for(ActiveGame g : activeGames) {
-            if(!(g.getUsers()[0].getName().equals(username) || g.getUsers()[1].getName().equals(username))) continue;
-            return g.getGame();
+            GameUser u0 = (g.getUsers().length > 0) ? g.getUsers()[0] : null;
+            GameUser u1 = (g.getUsers().length > 1) ? g.getUsers()[1] : null;
+            String n0 = (u0 != null) ? u0.getName() : null;
+            String n1 = (u1 != null) ? u1.getName() : null;
+            
+            if (!username.equals(n0) && !username.equals(n1)) continue;
+            
+            Game game = g.getGame();
+            
+            // Check if game has ended (winner is not 0)
+            if (game instanceof UltimateTTT) {
+                UltimateTTT tttGame = (UltimateTTT) game;
+                int winner = tttGame.getWinner();
+                if (winner != 0) {
+                    // Game has ended, mark this user as having acknowledged
+                    g.acknowledgeEnd(username);
+                    
+                    // If both users have acknowledged, update stats and remove game
+                    if (g.bothUsersAcknowledgedEnd()) {
+                        updateUserStats(g, winner);
+                        activeGames.remove(g);
+                        return null; // Return null to indicate game is over and removed
+                    }
+                    // Otherwise, return the game state so user can see the result
+                    return game;
+                }
+            }
+            
+            return game;
         }
         return null;
+    }
+    
+    private void updateUserStats(ActiveGame game, int winner) {
+        GameUser[] gameUsers = game.getUsers();
+        if (gameUsers.length < 2) return;
+        
+        GameUser user1 = gameUsers[0];
+        GameUser user2 = gameUsers[1];
+        
+        // Increment games played for both users
+        user1.setGamesPlayed(user1.getGamesPlayed() + 1);
+        user2.setGamesPlayed(user2.getGamesPlayed() + 1);
+        
+        // Determine winner based on usernameToTacNumber
+        Game gameObj = game.getGame();
+        if (gameObj instanceof UltimateTTT) {
+            UltimateTTT tttGame = (UltimateTTT) gameObj;
+            var usernameToTacNumber = tttGame.getUsernameToTacNumber();
+            
+            String user1Name = user1.getName();
+            String user2Name = user2.getName();
+            
+            Integer user1TacNumber = usernameToTacNumber.get(user1Name);
+            Integer user2TacNumber = usernameToTacNumber.get(user2Name);
+            
+            // winner is 1 or 2 (tac number), increment games won for the winner
+            if (user1TacNumber != null && user1TacNumber == winner) {
+                user1.setGamesWon(user1.getGamesWon() + 1);
+            } else if (user2TacNumber != null && user2TacNumber == winner) {
+                user2.setGamesWon(user2.getGamesWon() + 1);
+            }
+        }
     }
 
     public void registerUser(String username) {

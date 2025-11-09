@@ -22,6 +22,7 @@ export default function TicTacToe() {
   const [gameData, setGameData] = useState<GameState | null>(null)
   const [isMakingMove, setIsMakingMove] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [gameEnded, setGameEnded] = useState(false)
 
   const updateGameState = (data: GameState) => {
     console.log('Updating game state:', { turn: data.turn, winner: data.winner, won: data.won, board: data.totalBoard })
@@ -45,6 +46,15 @@ export default function TicTacToe() {
     const winnerValue = data.winner ?? (typeof data.won === 'number' ? data.won : 0)
     console.log('Game state update:', { winner: data.winner, won: data.won, winnerValue, turn: data.turn })
     setWinner(winnerValue)
+    
+    // Check if game has ended
+    if (winnerValue !== 0) {
+      setGameEnded(true)
+      // After showing the result for 3 seconds, redirect to homepage
+      setTimeout(() => {
+        router.push('/?message=Game ended! Please queue for another match.')
+      }, 3000)
+    }
     if (data.totalBoard && Array.isArray(data.totalBoard) && data.totalBoard.length >= 3) {
       const flatBoard: string[] = []
       for (let row = 0; row < 3; row++) {
@@ -65,12 +75,28 @@ export default function TicTacToe() {
     try {
       const res = await fetch(`/api/gamestate/${encodeURIComponent(username)}`, { cache: 'no-store' })
       if (!res.ok) {
+        // If game ended and both users acknowledged, backend returns null
+        if (res.status === 404 || res.status === 200) {
+          const text = await res.text()
+          if (!text || text === "null" || text.trim() === "") {
+            // Game has ended and been removed, redirect to homepage
+            console.log('Game ended, redirecting to homepage')
+            setTimeout(() => {
+              router.push('/?message=Game ended! Please queue for another match.')
+            }, 2000)
+            return
+          }
+        }
         setGameData(null)
         return
       }
       const text = await res.text()
       if (!text || text === "null" || text.trim() === "") {
-        setGameData(null)
+        // Game has ended and been removed, redirect to homepage
+        console.log('Game ended (null response), redirecting to homepage')
+        setTimeout(() => {
+          router.push('/?message=Game ended! Please queue for another match.')
+        }, 2000)
         return
       }
       try {
@@ -210,8 +236,8 @@ export default function TicTacToe() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black p-6">
-      <h1 className="text-4xl font-bold mb-4">Tic - Tac - Toe</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black p-4 sm:p-6">
+      <h1 className="text-2xl sm:text-4xl font-bold mb-4 text-center">Tic - Tac - Toe</h1>
 
       {error && <p className="mb-4 text-red-600">{error}</p>}
       
@@ -220,8 +246,8 @@ export default function TicTacToe() {
       )}
 
       {gameData && (
-        <div className="rounded-2xl border-4 border-black p-8 w-[400px] flex flex-col items-center justify-between">
-          <div className="grid grid-cols-3 grid-rows-3 gap-2 w-48 h-48">
+        <div className="rounded-2xl border-4 border-black p-4 sm:p-8 w-full max-w-[400px] flex flex-col items-center justify-between">
+          <div className="grid grid-cols-3 grid-rows-3 gap-2 w-full max-w-[192px] sm:w-48 sm:h-48 aspect-square">
             {board.map((cell, i) => (
               <button
                 key={i}
@@ -236,22 +262,27 @@ export default function TicTacToe() {
             ))}
           </div>
 
-          <div className="flex justify-between w-full mt-6">
+          <div className="flex justify-between w-full mt-4 sm:mt-6 text-sm sm:text-base">
             <div className="text-left">
               <p className="font-semibold underline">You ({myTacNumber === 1 ? "X" : "O"})</p>
-              <p>{username}</p>
+              <p className="break-all">{username}</p>
             </div>
             <div className="text-right">
               <p className="font-semibold underline">Opponent ({myTacNumber === 1 ? "O" : "X"})</p>
-              <p>{opponent || "Waiting..."}</p>
+              <p className="break-all">{opponent || "Waiting..."}</p>
             </div>
           </div>
 
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center text-sm sm:text-base">
             {gameWinner === 0 ? (
               <p>{currentTurn === myTacNumber ? "Your turn!" : "Opponent's turn"}</p>
             ) : (
-              <p className="font-bold">{gameWinner === myTacNumber ? "You won!" : "You lost!"}</p>
+              <div>
+                <p className="font-bold text-xl sm:text-2xl mb-2">{gameWinner === myTacNumber ? "You won! 🎉" : "You lost! 😔"}</p>
+                {gameEnded && (
+                  <p className="text-xs sm:text-sm text-gray-600 mt-2">Redirecting to homepage...</p>
+                )}
+              </div>
             )}
           </div>
         </div>
