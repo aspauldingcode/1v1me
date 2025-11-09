@@ -36,7 +36,9 @@ export default function TicTacToe() {
       })
     }
     if (data.turn !== undefined) setTurn(data.turn)
-    const winnerValue = data.winner ?? data.won ?? 0
+    // winner is the integer (0, 1, or 2), won might be boolean from getWon()
+    const winnerValue = data.winner ?? (typeof data.won === 'number' ? data.won : 0)
+    console.log('Game state update:', { winner: data.winner, won: data.won, winnerValue, fullData: data })
     setWinner(winnerValue)
     if (data.totalBoard && Array.isArray(data.totalBoard) && data.totalBoard.length >= 3) {
       const flatBoard: string[] = []
@@ -136,8 +138,10 @@ export default function TicTacToe() {
       console.log('Not your turn:', { turn: gameData.turn, myTacNumber })
       return
     }
-    if ((gameData.won ?? gameData.winner ?? 0) !== 0) {
-      console.log('Game already ended')
+    // Check if game ended: winner should be 0 if game is ongoing, 1 or 2 if someone won
+    const gameWinner = gameData.winner ?? (typeof gameData.won === 'number' ? gameData.won : 0)
+    if (gameWinner !== 0) {
+      console.log('Game already ended:', { winner: gameData.winner, won: gameData.won, gameWinner })
       return
     }
 
