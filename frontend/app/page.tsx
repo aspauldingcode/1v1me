@@ -17,16 +17,21 @@ export default function Home() {
 function QueueContent() {
   const router = useRouter()
   const [username, setUsername] = useState('')
+  const [currentUser, setCurrentUser] = useState<string | null>(null)
   const [users, setUsers] = useState<BackendUsers | null>(null)
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [queueLoading, setQueueLoading] = useState(false)
+  const [registerLoading, setRegisterLoading] = useState(false)
   const [queueMessage, setQueueMessage] = useState<string | null>(null)
   const pollId = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     try {
       const current = typeof window !== 'undefined' ? sessionStorage.getItem('onevoneme.currentUser') : null
-      if (current) setUsername(current)
+      if (current) {
+        setUsername(current)
+        setCurrentUser(current)
+      }
     } catch {}
   }, [])
 
@@ -65,6 +70,7 @@ function QueueContent() {
         try {
           sessionStorage.setItem('onevoneme.currentUser', name)
         } catch {}
+        setCurrentUser(name)
         return { ok: true, status: res.status }
       }
       // Treat 409 CONFLICT as "already exists" and allow proceed
@@ -72,11 +78,46 @@ function QueueContent() {
         try {
           sessionStorage.setItem('onevoneme.currentUser', name)
         } catch {}
+        setCurrentUser(name)
         return { ok: true, status: res.status }
       }
       return { ok: false, status: res.status }
     } catch {
       return { ok: false }
+    }
+  }
+
+  async function registerOnly() {
+    setQueueMessage(null)
+    const sanitized = sanitize(username)
+    const isLengthOk = validator.isLength(sanitized, { min: 3, max: 32 })
+    const isCharsOk = validator.matches(sanitized, /^[A-Za-z0-9_-]+$/)
+    if (!sanitized || !isLengthOk || !isCharsOk) {
+      setQueueMessage('Enter a valid username (3–32 letters/digits/_/-).')
+      return
+    }
+    setRegisterLoading(true)
+    try {
+      const res = await fetch(`/api/register/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })
+      if (res.ok) {
+        try {
+          sessionStorage.setItem('onevoneme.currentUser', sanitized)
+        } catch {}
+        setCurrentUser(sanitized)
+        setQueueMessage(`Registered '${sanitized}' successfully.`)
+      } else if (res.status === 409) {
+        try {
+          sessionStorage.setItem('onevoneme.currentUser', sanitized)
+        } catch {}
+        setCurrentUser(sanitized)
+        setQueueMessage(`Username taken. You may queue with this name. (status ${res.status})`)
+      } else {
+        setQueueMessage(`Could not register username. Try again.${res.status ? ` (status ${res.status})` : ''}`)
+      }
+    } catch {
+      setQueueMessage('Network error while registering.')
+    } finally {
+      setRegisterLoading(false)
     }
   }
 
@@ -165,15 +206,15 @@ function QueueContent() {
             className="flex-1 rounded-md border border-black/10 bg-white/70 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/10"
           />
           <button
-            onClick={() => void onQueue()}
-            disabled={queueLoading}
+            onClick={() => void (!currentUser ? registerOnly() : onQueue())}
+            disabled={!currentUser ? registerLoading : queueLoading}
             className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
           >
-            {queueLoading ? 'Queueing…' : 'Queue Me'}
+            {!currentUser ? (registerLoading ? 'Registering…' : 'Register') : (queueLoading ? 'Queueing…' : 'Queue Me')}
           </button>
         </div>
         <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-          Allowed: letters, digits, underscore, hyphen. We’ll register if needed.
+          Allowed: letters, digits, underscore, hyphen. Register first, then join queue.
         </p>
         {queueMessage && (
           <p className="mt-2 text-xs text-slate-700 dark:text-slate-200">{queueMessage}</p>
