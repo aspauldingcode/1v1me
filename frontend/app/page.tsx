@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 type Game = { type?: string } | null
@@ -53,7 +53,7 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
 
-  const navigateToGame = (game: Game) => {
+  const navigateToGame = useCallback((game: Game) => {
     const type = game?.type
     if (type === 'tictactoe') {
       // Username already stored in localStorage from registration
@@ -61,7 +61,7 @@ export default function Home() {
     } else if (type === 'rockpaperscissors' || type === 'rps') {
       router.push('/rock-paper-scissors')
     }
-  }
+  }, [router])
 
   useEffect(() => {
     if (!polling || !username) return
@@ -88,7 +88,7 @@ export default function Home() {
     }
     const interval = setInterval(poll, 2000)
     return () => clearInterval(interval)
-  }, [polling, username, router])
+  }, [polling, username, router, navigateToGame])
 
   const registered = !!(username && users?.[username])
   

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 type GameState = {
@@ -25,7 +25,7 @@ export default function TicTacToe() {
   const [gameEnded, setGameEnded] = useState(false)
   const [redirectCountdown, setRedirectCountdown] = useState(10)
 
-  const updateGameState = (data: GameState) => {
+  const updateGameState = useCallback((data: GameState) => {
     console.log('Updating game state:', { turn: data.turn, winner: data.winner, won: data.won, board: data.totalBoard })
     // Always update gameData first to trigger re-renders
     setGameData(data)
@@ -69,9 +69,9 @@ export default function TicTacToe() {
       console.log('Updating board state:', flatBoard)
       setBoard(flatBoard)
     }
-  }
+  }, [username, gameEnded])
 
-  const fetchGameState = async () => {
+  const fetchGameState = useCallback(async () => {
     if (!username) return
     try {
       const res = await fetch(`/api/gamestate/${encodeURIComponent(username)}`, { cache: 'no-store' })
@@ -118,7 +118,7 @@ export default function TicTacToe() {
     } catch {
       setGameData(null)
     }
-  }
+  }, [username, router, gameEnded, updateGameState])
   
   // Get username from localStorage on mount (stored during registration)
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function TicTacToe() {
     if (username) {
       fetchGameState()
     }
-  }, [username])
+  }, [username, fetchGameState])
 
   // Countdown timer when game ends
   useEffect(() => {
@@ -225,7 +225,7 @@ export default function TicTacToe() {
       console.log('Clearing polling interval')
       clearInterval(interval)
     }
-  }, [username, gameData?.turn, gameData?.winner, gameData?.won, gameData?.usernameToTacNumber, gameEnded])
+  }, [username, gameData, gameData?.turn, gameData?.winner, gameData?.won, gameData?.usernameToTacNumber, gameEnded, fetchGameState])
 
   const handleCellClick = async (cellIndex: number) => {
     if (!username || !gameData || isMakingMove) {
@@ -353,13 +353,13 @@ export default function TicTacToe() {
 
           <div className="mt-4 text-center text-sm sm:text-base">
             {gameWinner === 0 ? (
-              <p>{currentTurn === myTacNumber ? "Your turn!" : "Opponent's turn"}</p>
+              <p>{currentTurn === myTacNumber ? "Your turn!" : "Opponent&#39;s turn"}</p>
             ) : gameWinner === -1 ? (
               <div>
-                <p className="font-bold text-xl sm:text-2xl mb-2">Cat's game! 🐱 It's a tie!</p>
+                <p className="font-bold text-xl sm:text-2xl mb-2">Cat&#39;s game! 🐱 It&#39;s a tie!</p>
                 {gameEnded && (
                   <p className="text-xs sm:text-sm text-gray-600 mt-2">
-                    Redirecting to homepage in {redirectCountdown} second{redirectCountdown !== 1 ? 's' : ''}...
+                    Redirecting to homepage in {redirectCountdown} second{redirectCountdown !== 1 ? "s" : ""}...
                   </p>
                 )}
               </div>
@@ -368,7 +368,7 @@ export default function TicTacToe() {
                 <p className="font-bold text-xl sm:text-2xl mb-2">{gameWinner === myTacNumber ? "You won! 🎉" : "You lost! 😔"}</p>
                 {gameEnded && (
                   <p className="text-xs sm:text-sm text-gray-600 mt-2">
-                    Redirecting to homepage in {redirectCountdown} second{redirectCountdown !== 1 ? 's' : ''}...
+                    Redirecting to homepage in {redirectCountdown} second{redirectCountdown !== 1 ? "s" : ""}...
                   </p>
                 )}
               </div>

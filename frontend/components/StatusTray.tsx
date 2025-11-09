@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 type Status = { ok: boolean | null; code?: number }
 
@@ -9,16 +9,16 @@ export default function StatusTray() {
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<Record<string, Status>>({})
 
-  const checkEndpoint = async (path: string) => {
+  const checkEndpoint = useCallback(async (path: string) => {
     try {
       const res = await fetch(path, { cache: 'no-store' })
       setStatus(s => ({ ...s, [path]: { ok: res.ok, code: res.status } }))
     } catch {
       setStatus(s => ({ ...s, [path]: { ok: false } }))
     }
-  }
+  }, [])
 
-  const refreshAll = () => endpoints.forEach(checkEndpoint)
+  const refreshAll = useCallback(() => endpoints.forEach(checkEndpoint), [checkEndpoint])
 
   useEffect(() => {
     if (open) {
@@ -26,7 +26,7 @@ export default function StatusTray() {
       const id = setInterval(refreshAll, 30000)
       return () => clearInterval(id)
     }
-  }, [open])
+  }, [open, refreshAll])
 
   return (
     <>
