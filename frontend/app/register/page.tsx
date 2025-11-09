@@ -18,6 +18,9 @@ export default function RegisterPage() {
   const [currentUser, setCurrentUser] = useState<string | null>(null)
   const [queueLoading, setQueueLoading] = useState(false)
   const [queueMessage, setQueueMessage] = useState<string | null>(null)
+  const [users, setUsers] = useState<Record<string, any> | null>(null)
+  const [isRegistered, setIsRegistered] = useState(false)
+  const [loadingUsers, setLoadingUsers] = useState(false)
   const pollId = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -41,6 +44,37 @@ export default function RegisterPage() {
     } catch {}
   }, [])
 
+  async function fetchUsers() {
+    setLoadingUsers(true)
+    try {
+      const res = await fetch('/api/users', { cache: 'no-store' })
+      if (res.ok) {
+        const data = (await res.json()) as Record<string, any>
+        setUsers(data)
+      } else {
+        setUsers(null)
+      }
+    } catch {
+      setUsers(null)
+    } finally {
+      setLoadingUsers(false)
+    }
+  }
+
+  useEffect(() => {
+    void fetchUsers()
+    const id = setInterval(() => void fetchUsers(), 10000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    if (currentUser && users) {
+      setIsRegistered(Boolean(users[currentUser]))
+    } else {
+      setIsRegistered(false)
+    }
+  }, [currentUser, users])
+
   async function register() {
     setResult(null)
     const sanitized = sanitizeUsername(username)
@@ -58,26 +92,33 @@ export default function RegisterPage() {
           sessionStorage.setItem('onevoneme.currentUser', sanitized)
           setCurrentUser(sanitized)
         } catch {}
+        setIsRegistered(true)
         setResult({ ok: true, code: res.status, message: `Registered '${sanitized}' successfully.` })
         setUsername('')
+        void fetchUsers()
       } else {
         if (res.status === 409) {
           try {
             sessionStorage.setItem('onevoneme.currentUser', sanitized)
             setCurrentUser(sanitized)
           } catch {}
+          setIsRegistered(true)
           setResult({ ok: false, code: res.status, message: 'Username taken. You may queue with this name.' })
+          void fetchUsers()
         } else if (res.status === 400) {
           let msg = 'Username not allowed by policy.'
           try {
             msg = await res.text() || msg
           } catch {}
+          setIsRegistered(false)
           setResult({ ok: false, code: res.status, message: msg })
         } else {
+          setIsRegistered(false)
           setResult({ ok: false, code: res.status, message: `Registration failed (${res.status}).` })
         }
       }
     } catch {
+      setIsRegistered(false)
       setResult({ ok: false, message: 'Network error while registering.' })
     } finally {
       setLoading(false)
@@ -112,6 +153,10 @@ export default function RegisterPage() {
 
   async function onQueue() {
     setQueueMessage(null)
+    if (!currentUser || !isRegistered) {
+      setQueueMessage('Please register a username first.')
+      return
+    }
     const name = currentUser || ''
     const sanitized = sanitizeUsername(name)
     const isLengthOk = validator.isLength(sanitized, { min: 3, max: 32 })
@@ -125,6 +170,11 @@ export default function RegisterPage() {
       const res = await fetch(`/api/queue/${encodeURIComponent(sanitized)}`, { method: 'POST', cache: 'no-store' })
       if (!res.ok) {
         setQueueMessage(`Queue failed (status ${res.status}).`)
+        if (res.status === 400) {
+          // Backend says unregistered; reflect immediately
+          setIsRegistered(false)
+          void fetchUsers()
+        }
         return
       }
       const data = (await res.json()) as { type?: string } | null
@@ -157,14 +207,15 @@ export default function RegisterPage() {
           placeholder="Enter username (letters, digits, _ or -)"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="flex-1 rounded-md border border-black/10 bg-white/70 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/10"
+          disabled={isRegistered}
+          className="flex-1 rounded-md border border-black/10 bg-white/70 px-3 py-2 text-sm disabled:opacity-50 dark:border-white/10 dark:bg-white/10"
         />
         <button
-          onClick={() => void register()}
-          disabled={loading}
+          onClick={() => void (!isRegistered ? register() : onQueue())}
+          disabled={!isRegistered ? loading : queueLoading}
           className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
         >
-          {loading ? 'Registering…' : 'Register'}
+          {!isRegistered ? (loading ? 'Registering…' : 'Register') : (queueLoading ? 'Queueing…' : 'Queue Me')}
         </button>
       </div>
 
@@ -180,7 +231,7 @@ export default function RegisterPage() {
             <p className="text-sm">Current user: <span className="font-medium">{currentUser}</span></p>
             <button
               onClick={() => void onQueue()}
-              disabled={queueLoading}
+              disabled={!isRegistered || queueLoading}
               className="rounded-md bg-slate-900 px-3 py-1.5 text-xs text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
             >
               {queueLoading ? 'Queueing…' : 'Queue Me'}
@@ -188,6 +239,9 @@ export default function RegisterPage() {
           </div>
           {queueMessage && (
             <p className="mt-2 text-xs text-slate-700 dark:text-slate-200">{queueMessage}</p>
+          )}
+          {!isRegistered && (
+            <p className="mt-2 text-xs text-red-700 dark:text-red-400">Backend has no record for this user. Please register above.</p>
           )}
         </div>
       )}
