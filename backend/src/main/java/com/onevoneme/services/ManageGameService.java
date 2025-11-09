@@ -67,7 +67,8 @@ public class ManageGameService {
         if (random.nextBoolean()) {
             newGame = new UltimateTTT(otherUser, username);
         } else {
-            newGame = new RockPaperScissors(otherUser, username);
+            newGame = new UltimateTTT(otherUser, username);
+            //newGame = new RockPaperScissors(otherUser, username);
         }
         
         ActiveGame game = new ActiveGame(newGame, users.get(username), users.get(otherUser));
