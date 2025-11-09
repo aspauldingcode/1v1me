@@ -353,10 +353,10 @@ export default function TicTacToe() {
 
           <div className="mt-4 text-center text-sm sm:text-base">
             {gameWinner === 0 ? (
-              <p>{currentTurn === myTacNumber ? "Your turn!" : "Opponent&#39;s turn"}</p>
+              <p>{currentTurn === myTacNumber ? "Your turn!" : "Opponent's turn"}</p>
             ) : gameWinner === -1 ? (
               <div>
-                <p className="font-bold text-xl sm:text-2xl mb-2">Cat&#39;s game! 🐱 It&#39;s a tie!</p>
+                <p className="font-bold text-xl sm:text-2xl mb-2">Cat's game! 🐱 It's a tie!</p>
                 {gameEnded && (
                   <p className="text-xs sm:text-sm text-gray-600 mt-2">
                     Redirecting to homepage in {redirectCountdown} second{redirectCountdown !== 1 ? "s" : ""}...
