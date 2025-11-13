@@ -331,7 +331,7 @@ export default function TicTacToe() {
                 key={i}
                 onClick={() => handleCellClick(i)}
                 disabled={!canMakeMove || cell !== ""}
-                className={`border-2 border-black w-full h-full flex items-center justify-center text-3xl font-bold ${
+                className={`border-2 border-black dark:border-white w-full h-full flex items-center justify-center text-3xl font-bold ${
                   canMakeMove && cell === "" ? "cursor-pointer hover:bg-gray-100 active:bg-gray-200" : "cursor-not-allowed opacity-60"
                 }`}
               >
