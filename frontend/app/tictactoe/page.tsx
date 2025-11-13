@@ -307,7 +307,7 @@ export default function TicTacToe() {
 
   if (!username) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black p-6">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black dark:bg-black dark:text-white p-6">
         <p>Loading...</p>
       </div>
     )
