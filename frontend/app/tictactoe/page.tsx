@@ -314,7 +314,7 @@ export default function TicTacToe() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black p-4 sm:p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black dark:bg-black dark:text-white p-4 sm:p-6">
       <h1 className="text-2xl sm:text-4xl font-bold mb-4 text-center">Tic - Tac - Toe</h1>
 
       {error && <p className="mb-4 text-red-600">{error}</p>}
@@ -324,7 +324,7 @@ export default function TicTacToe() {
       )}
 
       {gameData && (
-        <div className="rounded-2xl border-4 border-black p-4 sm:p-8 w-full max-w-[400px] flex flex-col items-center justify-between">
+        <div className="rounded-2xl border-4 border-black dark:border-white p-4 sm:p-8 w-full max-w-[400px] flex flex-col items-center justify-between">
           <div className="grid grid-cols-3 grid-rows-3 gap-2 w-full max-w-[192px] sm:w-48 sm:h-48 aspect-square">
             {board.map((cell, i) => (
               <button
