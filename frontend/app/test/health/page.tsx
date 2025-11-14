@@ -26,7 +26,7 @@ export default function HealthTestPage() {
         Test backend Spring API via <code>/api/health</code> and frontend API route at <code>/api/frontend-health</code>.
       </p>
 
-      {(['/api/health', '/api/frontend-health'] as const).map((endpoint, i) => {
+      {(['/api/backend-health', '/api/frontend-health'] as const).map((endpoint, i) => {
         const state = i === 0 ? backend : frontend
         const setter = i === 0 ? setBackend : setFrontend
         return (
