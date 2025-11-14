@@ -28,8 +28,8 @@ public class ManageGameService {
         }
 
         // Clean queue front if it contains unregistered users (legacy entries)
-        while (!usersInQueue.isEmpty() && !isUserCreated(usersInQueue.get(0))) {
-            usersInQueue.remove(0);
+        while (!usersInQueue.isEmpty() && !isUserCreated(usersInQueue.getFirst())) {
+            usersInQueue.removeFirst();
         }
 
         // search active games and make sure that the user isn't already in one
@@ -123,7 +123,6 @@ public class ManageGameService {
         users.put(username, new GameUser(username));
     }
 
-    // Explicit accessor to avoid reliance on Lombok-generated getter
     public HashMap<String, GameUser> getUsers() {
         return users;
     }

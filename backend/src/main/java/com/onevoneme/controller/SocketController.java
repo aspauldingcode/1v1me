@@ -34,7 +34,7 @@ public class SocketController {
         return gameService.getGameState(username);
     }
 
-    @GetMapping("/users")
+    @MessageMapping("/users")
     @SendTo("/topic/users")
     public HashMap<String, GameUser> getUsers() {
         return gameService.getUsers();
