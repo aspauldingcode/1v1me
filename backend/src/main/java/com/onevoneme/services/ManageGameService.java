@@ -1,17 +1,14 @@
 package com.onevoneme.services;
 
-import com.onevoneme.model.GameUser;
+import com.onevoneme.model.user.GameUser;
 import com.onevoneme.model.game.ActiveGame;
 import com.onevoneme.model.game.Game;
-import com.onevoneme.model.game.RockPaperScissors;
 import com.onevoneme.model.game.UltimateTTT;
 import com.onevoneme.model.move.Move;
-import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Random;
 
 @Service
@@ -82,14 +79,14 @@ public class ManageGameService {
         return users.containsKey(username);
     }
 
-    public boolean makeMove(Move move) {
+    public Game makeMove(Move move) {
         String user = move.getUsername();
         for(ActiveGame g : activeGames) {
             if(!(g.getUsers()[0].getName().equals(user) || g.getUsers()[1].getName().equals(user))) continue;
             g.getGame().makeMove(move);
-            return true;
+            return g.getGame();
         }
-        return false;
+        return null;
     }
 
     public Game getGameState(String username) {
@@ -100,29 +97,8 @@ public class ManageGameService {
             String n1 = (u1 != null) ? u1.getName() : null;
             
             if (!username.equals(n0) && !username.equals(n1)) continue;
-            
-            Game game = g.getGame();
-            
-            // Check if game has ended (winner is not 0, including -1 for cat's game)
-            if (game instanceof UltimateTTT) {
-                UltimateTTT tttGame = (UltimateTTT) game;
-                int winner = tttGame.getWinner();
-                if (winner != 0) {
-                    // Game has ended, mark this user as having acknowledged
-                    g.acknowledgeEnd(username);
-                    
-                    // If both users have acknowledged, update stats and remove game
-                    if (g.bothUsersAcknowledgedEnd()) {
-                        updateUserStats(g, winner);
-                        activeGames.remove(g);
-                        return null; // Return null to indicate game is over and removed
-                    }
-                    // Otherwise, return the game state so user can see the result
-                    return game;
-                }
-            }
-            
-            return game;
+
+            return g.getGame();
         }
         return null;
     }
@@ -140,27 +116,7 @@ public class ManageGameService {
         
         // Determine winner based on usernameToTacNumber
         Game gameObj = game.getGame();
-        if (gameObj instanceof UltimateTTT) {
-            UltimateTTT tttGame = (UltimateTTT) gameObj;
-            var usernameToTacNumber = tttGame.getUsernameToTacNumber();
-            
-            String user1Name = user1.getName();
-            String user2Name = user2.getName();
-            
-            Integer user1TacNumber = usernameToTacNumber.get(user1Name);
-            Integer user2TacNumber = usernameToTacNumber.get(user2Name);
-            
-            // winner is 1 or 2 (tac number), increment games won for the winner
-            // winner == -1 means cat's game (tie), so no one gets a win
-            if (winner > 0) {
-                if (user1TacNumber != null && user1TacNumber == winner) {
-                    user1.setGamesWon(user1.getGamesWon() + 1);
-                } else if (user2TacNumber != null && user2TacNumber == winner) {
-                    user2.setGamesWon(user2.getGamesWon() + 1);
-                }
-            }
-            // If winner == -1 (cat's game), both players played but no one wins
-        }
+
     }
 
     public void registerUser(String username) {

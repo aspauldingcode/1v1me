@@ -24,15 +24,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.2.1",
     "next": "15.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sockjs-client": "^1.6.1",
     "validator": "^13.15.20"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
+    "@types/sockjs-client": "^1.5.4",
     "@types/validator": "^13.15.4",
     "autoprefixer": "^10.4.16",
     "eslint": "^9.14.0",

@@ -1,6 +1,7 @@
 "use client"
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import WebSocketService from './network/websocket/WebSocketService'
 
 type Game = { type?: string } | null
 type GameUser = {
@@ -17,19 +18,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [polling, setPolling] = useState(false)
-
-  // Check for message in URL params (from game end redirect)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const urlMessage = params.get('message')
-      if (urlMessage) {
-        setMessage(urlMessage)
-        // Clear the message from URL
-        window.history.replaceState({}, '', '/')
-      }
-    }
-  }, [])
 
   // Load username from localStorage on mount
   useEffect(() => {
@@ -49,7 +37,7 @@ export default function Home() {
       } catch {}
     }
     fetchUsers()
-    const interval = setInterval(fetchUsers, 10000)
+    const interval = setInterval(fetchUsers, 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -58,35 +46,35 @@ export default function Home() {
     if (type === 'tictactoe') {
       // Username already stored in localStorage from registration
       router.push('/tictactoe')
-    } else if (type === 'rockpaperscissors' || type === 'rps') {
-      router.push('/rock-paper-scissors')
     }
   }, [router])
 
+  const poll = async () => {
+    try {
+      const res = await fetch(`/api/gamestate/${encodeURIComponent(username)}`, { cache: 'no-store' })
+      if (!res.ok) return;
+
+      const text = await res.text()
+      
+      if (!text || text === 'null' || text.trim() === '') return;
+      
+      try {
+        const game = JSON.parse(text) as Game
+        if (game && game.type) {
+          setPolling(false)
+          navigateToGame(game)
+          WebSocketService.connect(() => {
+            console.log("Connecting to websocket...");
+          });
+        }
+      } catch {}// Invalid JSON, continue polling
+    } catch {} // Network error, continue polling
+  }
+
   useEffect(() => {
     if (!polling || !username) return
-    const poll = async () => {
-      try {
-        const res = await fetch(`/api/gamestate/${encodeURIComponent(username)}`, { cache: 'no-store' })
-        if (res.ok) {
-          const text = await res.text()
-          if (text && text !== 'null' && text.trim() !== '') {
-            try {
-              const game = JSON.parse(text) as Game
-              if (game && game.type) {
-                setPolling(false)
-                navigateToGame(game)
-              }
-            } catch {
-              // Invalid JSON, continue polling
-            }
-          }
-        }
-      } catch {
-        // Network error, continue polling
-      }
-    }
-    const interval = setInterval(poll, 2000)
+    
+    const interval = setInterval(poll, 1000)
     return () => clearInterval(interval)
   }, [polling, username, router, navigateToGame])
 
@@ -127,7 +115,7 @@ export default function Home() {
         cache: 'no-store'
       })
 
-      if (action === 'register') {
+      if (action === 'register') { // handle register
         if (res.ok || res.status === 409) {
           // Store username in localStorage on successful registration
           if (typeof window !== 'undefined' && username) {

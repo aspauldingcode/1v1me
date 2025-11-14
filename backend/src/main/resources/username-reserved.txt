@@ -18,3 +18,5 @@ dev
 test
 tester
 qa
+none
+cats

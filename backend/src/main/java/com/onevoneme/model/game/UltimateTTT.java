@@ -1,12 +1,11 @@
 package com.onevoneme.model.game;
 
-import com.onevoneme.model.GameUser;
 import com.onevoneme.model.move.Move;
 import com.onevoneme.model.move.TTTMove;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class UltimateTTT implements Game {
     private int turn = 1;
@@ -15,24 +14,9 @@ public class UltimateTTT implements Game {
     private final String[] users;
     private int won = 0;
     private final String type = "tictactoe";
+    private final String code = GameCodeGenerator.generate(7);
 
-    public String getType() {
-        return type;
-    }
-
-    public int getTurn() {
-        return turn;
-    }
-
-    public int[][] getTotalBoard() {
-        return totalBoard;
-    }
-
-    public Map<String, Integer> getUsernameToTacNumber() {
-        return usernameToTacNumber;
-    }
-
-    public int getWinner() {
+    public int getWon() {
         return won;
     }
 
@@ -83,8 +67,21 @@ public class UltimateTTT implements Game {
     }
 
     @Override
-    public boolean getWon() {
+    public boolean gameCompleted() {
         return this.won != 0;
+    }
+
+    @Override
+    public String getWinner() {
+        if(this.won == 0) return "None";
+        if(this.won == -1) return "Cats";
+        AtomicReference<String> winner = new AtomicReference<>("");
+        usernameToTacNumber.forEach((key, value) -> {
+            if(this.won == value) {
+                winner.set(key);
+            }
+        });
+        return winner.get();
     }
 
     // Returns winner number (1 or 2) if someone won, 0 if no winner yet or cat's game
@@ -131,4 +128,25 @@ public class UltimateTTT implements Game {
         }
         return true;
     }
+
+    public String getCode() {
+        return this.code;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public int getTurn() {
+        return turn;
+    }
+
+    public int[][] getTotalBoard() {
+        return totalBoard;
+    }
+
+    public Map<String, Integer> getUsernameToTacNumber() {
+        return usernameToTacNumber;
+    }
+
 }
