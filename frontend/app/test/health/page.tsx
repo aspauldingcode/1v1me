@@ -23,7 +23,7 @@ export default function HealthTestPage() {
     <main className="min-h-screen p-6 flex flex-col gap-8">
       <h1 className="text-2xl font-semibold">Health Connectivity Test</h1>
       <p className="text-sm text-gray-600">
-        Test backend Spring API via <code>/api/health</code> and frontend API route at <code>/api/frontend-health</code>.
+        Test backend Spring API via <code>/api/backend-health</code> and frontend API route at <code>/api/frontend-health</code>.
       </p>
 
       {(['/api/backend-health', '/api/frontend-health'] as const).map((endpoint, i) => {

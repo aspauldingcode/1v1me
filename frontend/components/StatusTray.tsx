@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 type Status = { ok: boolean | null; code?: number }
 
-const endpoints = ['/api/frontend-health', '/api/health']
+const endpoints = ['/api/frontend-health', '/api/backend-health']
 
 export default function StatusTray() {
   const [open, setOpen] = useState(false)
@@ -34,7 +34,7 @@ export default function StatusTray() {
         onClick={() => setOpen(v => !v)}
         className="fixed bottom-4 right-4 z-40 h-11 w-11 rounded-full border border-black/10 bg-white text-slate-900 shadow-sm hover:shadow-md dark:border-white/10 dark:bg-white/10 dark:text-white"
       >
-        <span className="text-lg">ℹ️</span>
+        <span className="text-lg font-nerdfont">{'\uF402'}</span>
       </button>
 
       {open && (
@@ -58,7 +58,7 @@ export default function StatusTray() {
                 <div key={path} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`h-2 w-2 rounded-full ${color}`} />
-                    <span className="text-sm">{path === '/api/health' ? 'Backend' : 'Frontend'}</span>
+                    <span className="text-sm">{path === '/api/backend-health' ? 'Backend' : 'Frontend'}</span>
                   </div>
                   <span className="text-xs text-slate-600 dark:text-slate-300">{text}{s.code ? ` (${s.code})` : ''}</span>
                 </div>

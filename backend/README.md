@@ -30,7 +30,15 @@ Access the H2 console at: [http://localhost:8080/h2-console](http://localhost:80
 
 ## API Endpoints
 
-- `GET /api/health` - Health check
+Health Check:
+
+- `GET /api/backend-health`
+- `GET /api/frontend-health`
+
+Game State:
+
+<!-- FIXME: -->
+- "ugh"
 
 ## Tech Stack
 

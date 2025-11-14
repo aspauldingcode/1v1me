@@ -1,7 +1,7 @@
 "use client"
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import WebSocketService from './network/websocket/WebSocketService'
+import WebSocketService from './api/websocket/WebSocketService'
 
 type Game = { type?: string } | null
 type GameUser = {
