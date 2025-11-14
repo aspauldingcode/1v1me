@@ -21,7 +21,7 @@ public class RestController {
         this.usernamePolicyService = usernamePolicyService;
     }
 
-    @GetMapping("/health")
+    @GetMapping("/backend-health")
     public ResponseEntity<Map<String, String>> health() {
         Map<String, String> response = new HashMap<>();
         response.put("status", "UP");
