@@ -1,10 +1,12 @@
 package com.onevoneme.controller;
 
+import com.onevoneme.model.user.GameUser;
 import com.onevoneme.services.ManageGameService;
 import com.onevoneme.services.UsernamePolicyService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -29,6 +31,10 @@ public class RestController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/users")
+    public HashMap<String, GameUser> getUsers() {
+        return gameService.getUsers();
+    }
 
     @PostMapping("/queue/{username}")
     public ResponseEntity<String> queueUp(@PathVariable String username) {
